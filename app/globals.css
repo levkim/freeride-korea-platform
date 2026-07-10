@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f8fa;
+  --foreground: #0b0d10;
+  --color-fk-red: #c91f2f;
+  --color-fk-blue: #144f93;
+  --color-fk-black: #0b0d10;
+  --color-fk-white: #ffffff;
+  --color-fk-snow: #f7f8fa;
+  --color-fk-ice: #edf1f6;
+  --color-fk-stone: #d9dee7;
+  --color-fk-muted: #647083;
+  --shadow-diffused: 0 24px 60px -34px rgba(11, 13, 16, 0.28);
 }
 
 @theme inline {
@@ -12,15 +21,97 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image:
+    linear-gradient(rgba(11, 13, 16, 0.8) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 13, 16, 0.8) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+::selection {
+  background: rgba(201, 31, 47, 0.18);
+}
+
+.fk-reveal {
+  animation: fk-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--index, 0) * 90ms);
+}
+
+.fk-drift {
+  animation: fk-drift 7s ease-in-out infinite alternate;
+}
+
+.fk-marquee {
+  animation: fk-marquee 22s linear infinite;
+}
+
+.fk-nav-type {
+  display: inline-block;
+  font-family: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  transform: skewX(-7deg);
+  transform-origin: center;
+}
+
+@keyframes fk-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fk-drift {
+  from {
+    transform: translate3d(0, 0, 0) rotate(-1deg);
+  }
+
+  to {
+    transform: translate3d(10px, -12px, 0) rotate(1deg);
+  }
+}
+
+@keyframes fk-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
