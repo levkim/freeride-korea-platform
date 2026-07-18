@@ -18,6 +18,7 @@ const adminNav = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const supabaseStatus = getSupabaseAdminStatus();
   const isSupabase = supabaseStatus.isConfigured;
+  const hasAdminAccessKey = Boolean(process.env.ADMIN_ACCESS_KEY);
 
   return (
     <div className="min-h-screen bg-zinc-100">
@@ -68,6 +69,28 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               DB 점검 보기
             </Link>
+          </div>
+
+          <div className="mt-3 border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-black uppercase text-zinc-400">
+              관리자 보호
+            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <span
+                className={[
+                  "h-2.5 w-2.5 rounded-full",
+                  hasAdminAccessKey ? "bg-emerald-400" : "bg-amber-300",
+                ].join(" ")}
+              />
+              <p className="font-black">
+                {hasAdminAccessKey ? "접근 키 설정됨" : "개발 모드"}
+              </p>
+            </div>
+            <p className="mt-2 text-xs font-bold leading-5 text-zinc-400">
+              {hasAdminAccessKey
+                ? "관리자 화면 접근 시 키 확인을 거칩니다."
+                : "운영 배포 전 ADMIN_ACCESS_KEY를 설정해야 합니다."}
+            </p>
           </div>
         </aside>
         <main className="p-5 md:p-8">{children}</main>
