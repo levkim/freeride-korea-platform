@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "qa:links": "node ./scripts/qa-internal-links.mjs",
-    "qa:release": "npm run lint && npm run qa:links"
+    "qa:seo": "node ./scripts/qa-seo.mjs",
+    "qa:release": "npm run lint && npm run qa:links && npm run qa:seo"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
