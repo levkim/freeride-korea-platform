@@ -6,6 +6,7 @@ import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
 const adminNav = [
   ["대시보드", "/admin"],
   ["DB 연결 준비", "/admin/data-setup"],
+  ["배포 점검", "/admin/deployment"],
   ["뉴스 / 비디오", "/admin/news-video"],
   ["대회 / 이벤트", "/admin/events"],
   ["카테고리 운영", "/admin/site-categories"],
