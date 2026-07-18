@@ -29,6 +29,7 @@ npm run lint
 npm run qa:links
 npm run qa:runtime
 npm run qa:seo
+npm run qa:deploy-env
 npm run qa:release
 npm run build
 ```
@@ -36,6 +37,7 @@ npm run build
 `qa:links` checks rendered internal links against the local server. Run the dev server first.
 `qa:runtime` checks the `/healthz` endpoint against the local server. Use `/health` for a browser-readable status page.
 `qa:seo` checks the rendered home metadata, `robots.txt`, and `sitemap.xml`.
+`qa:deploy-env` checks production environment readiness. It is expected to fail before the real domain, admin key, and Supabase project are configured.
 `qa:release` runs lint, internal-link QA, SEO QA, and runtime QA together.
 
 ## CI

@@ -81,6 +81,7 @@ function getDeploymentChecklist(): ChecklistItem[] {
 const qaCommands = [
   "npm run qa:release",
   "npm run build",
+  "npm run qa:deploy-env",
   "curl http://localhost:3000/health",
   "curl http://localhost:3000/healthz",
   "QA_BASE_URL=https://your-domain.example npm run qa:release",
