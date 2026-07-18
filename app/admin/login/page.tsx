@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 type AdminLoginPageProps = {
   searchParams: Promise<{
     error?: string;
+    loggedOut?: string;
     next?: string;
   }>;
 };
@@ -45,6 +46,12 @@ export default async function AdminLoginPage({
         {params.error === "invalid" ? (
           <div className="mt-5 border border-red-200 bg-red-50 p-4 text-sm font-bold leading-6 text-red-700">
             관리자 접근 키가 올바르지 않습니다.
+          </div>
+        ) : null}
+
+        {params.loggedOut === "1" ? (
+          <div className="mt-5 border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold leading-6 text-emerald-700">
+            관리자 세션이 종료되었습니다.
           </div>
         ) : null}
 

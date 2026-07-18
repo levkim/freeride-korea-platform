@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { signOutAdminAccess } from "@/app/admin/actions";
 import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
 
 const adminNav = [
@@ -91,6 +92,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 ? "관리자 화면 접근 시 키 확인을 거칩니다."
                 : "운영 배포 전 ADMIN_ACCESS_KEY를 설정해야 합니다."}
             </p>
+            {hasAdminAccessKey ? (
+              <form action={signOutAdminAccess} className="mt-4">
+                <button
+                  type="submit"
+                  className="border border-white/15 bg-zinc-200 px-3 py-2 text-xs font-black text-zinc-950 transition hover:bg-white"
+                >
+                  로그아웃
+                </button>
+              </form>
+            ) : null}
           </div>
         </aside>
         <main className="p-5 md:p-8">{children}</main>
