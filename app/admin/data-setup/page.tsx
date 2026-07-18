@@ -1,5 +1,6 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Badge } from "@/components/ui/Badge";
+import { getSupabaseDiagnostics } from "@/lib/supabase/diagnostics";
 import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
 
 const schemaObjects = [
@@ -110,8 +111,11 @@ export const metadata = {
   title: "DB 연결 준비 | FREERIDE KOREA Admin",
 };
 
-export default function AdminDataSetupPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminDataSetupPage() {
   const supabaseStatus = getSupabaseAdminStatus();
+  const diagnostics = await getSupabaseDiagnostics();
 
   return (
     <AdminShell>
@@ -226,6 +230,66 @@ export default function AdminDataSetupPage() {
               </p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="mt-8 border border-zinc-200 bg-white p-5">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
+              Live DB Check
+            </p>
+            <h2 className="mt-3 text-2xl font-black">
+              Supabase 연결 점검
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+              환경변수가 설정된 경우 service role 경계로 주요 테이블과 Storage
+              bucket 응답을 확인합니다. RLS 적용 여부는 Supabase Advisors에서
+              최종 확인하고, 이 화면은 앱이 실제 DB와 통신할 수 있는지를
+              점검합니다.
+            </p>
+          </div>
+          <Badge tone={diagnostics.isConfigured ? "green" : "amber"}>
+            {diagnostics.mode}
+          </Badge>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {diagnostics.tableChecks.map((check) => (
+            <div
+              key={check.table}
+              className="border border-zinc-200 bg-zinc-50 p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-black text-zinc-950">{check.label}</p>
+                  <p className="mt-1 text-xs font-bold text-zinc-500">
+                    {check.table}
+                  </p>
+                </div>
+                <Badge tone={check.tone}>{check.status}</Badge>
+              </div>
+              <p className="mt-3 text-sm font-bold leading-6 text-zinc-600">
+                {check.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 border border-zinc-200 bg-zinc-50 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-black text-zinc-950">
+                Storage bucket: {diagnostics.storageCheck.bucket}
+              </p>
+              <p className="mt-2 text-sm font-bold leading-6 text-zinc-600">
+                {diagnostics.storageCheck.detail}
+              </p>
+            </div>
+            <Badge tone={diagnostics.storageCheck.tone}>
+              {diagnostics.storageCheck.status}
+            </Badge>
+          </div>
         </div>
       </section>
 
