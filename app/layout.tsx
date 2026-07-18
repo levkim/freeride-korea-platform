@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FREERIDE KOREA",
   description:
-    "Korea's official freeride platform for athlete development, safety education, events, tours, and mountain culture.",
+    "Korea's official freeride platform for athlete development, education, events, tours, and mountain culture.",
 };
 
 export default function RootLayout({
@@ -26,6 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-[var(--color-fk-snow)] text-[var(--color-fk-black)]">

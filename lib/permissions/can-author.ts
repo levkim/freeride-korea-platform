@@ -9,9 +9,24 @@ const memberRank: Record<MemberType, number> = {
   executive: 2,
 };
 
-export function canAuthor(memberType: MemberType, kind: ContentKind) {
+const educationSubtypes = new Set([
+  "Avalanche Safety",
+  "Freeriding",
+  "Backcountry",
+  "WFR",
+]);
+
+export function canAuthor(
+  memberType: MemberType,
+  kind: ContentKind,
+  subtype?: string,
+) {
   if (kind === "culture" || kind === "marketplace") {
     return true;
+  }
+
+  if (kind === "program" && subtype && educationSubtypes.has(subtype)) {
+    return memberRank[memberType] >= memberRank.executive;
   }
 
   if (kind === "tour" || kind === "program") {

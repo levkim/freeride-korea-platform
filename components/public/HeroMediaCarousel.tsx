@@ -7,32 +7,32 @@ import { cn } from "@/lib/utils/cn";
 
 const mediaItems = [
   {
-    label: "Training",
-    title: "Athlete pathway",
+    label: "훈련",
+    title: "선수 성장 루트",
     ko: "선수 훈련과 성장 루트",
     src: "/brand/hero-training.png",
   },
   {
-    label: "Tour",
-    title: "Freeride tour",
+    label: "투어",
+    title: "프리라이드 투어",
     ko: "프리라이드 투어와 원정",
     src: "/brand/hero-tour.png",
   },
   {
-    label: "Safety",
-    title: "Avalanche education",
+    label: "안전",
+    title: "눈사태 안전교육",
     ko: "눈사태 안전교육과 WFR",
     src: "/brand/hero-safety.png",
   },
   {
-    label: "Event",
-    title: "Competition archive",
+    label: "대회",
+    title: "대회 아카이브",
     ko: "대회 참가와 공식 소식",
     src: "/brand/hero-event.png",
   },
   {
-    label: "Video",
-    title: "News and video",
+    label: "영상",
+    title: "뉴스와 영상",
     ko: "영상, 뉴스, 현장 기록",
     src: "/brand/hero-video.png",
   },
@@ -73,7 +73,7 @@ export function HeroMediaCarousel() {
           ))}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,13,16,0.08)_0%,rgba(11,13,16,0.18)_42%,rgba(11,13,16,0.82)_100%)]" />
           <div className="absolute left-5 top-5">
-            <Badge tone={activeItem.label === "Safety" ? "red" : "blue"}>
+            <Badge tone={activeItem.label === "안전" ? "red" : "blue"}>
               {activeItem.label}
             </Badge>
           </div>
@@ -89,10 +89,10 @@ export function HeroMediaCarousel() {
         <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-4 border-t border-zinc-200 pt-4">
           <div>
             <p className="text-xs font-black uppercase text-zinc-500">
-              Hero media rotation
+              메인 미디어
             </p>
             <p className="mt-1 text-sm font-bold text-zinc-700">
-              Replace with race, tour, training, safety, and video assets.
+              대회, 투어, 훈련, 안전 교육, 영상 콘텐츠를 순환 노출합니다.
             </p>
           </div>
           <div className="flex gap-1.5">
@@ -100,7 +100,7 @@ export function HeroMediaCarousel() {
               <button
                 key={item.label}
                 type="button"
-                aria-label={`Show ${item.label}`}
+                aria-label={`${item.label} 보기`}
                 onClick={() => setActiveIndex(index)}
                 className={cn(
                   "h-2.5 transition-all duration-300",

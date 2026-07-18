@@ -10,12 +10,12 @@ export function SiteFooter() {
           </p>
         </div>
         <div>
-          <p className="text-sm font-bold uppercase text-zinc-400">Values</p>
+          <p className="text-sm font-bold uppercase text-zinc-400">가치</p>
           <p className="mt-3 text-sm font-bold">Fun · Respect · Safety</p>
         </div>
         <div>
-          <p className="text-sm font-bold uppercase text-zinc-400">Position</p>
-          <p className="mt-3 text-sm font-bold">Official 60% / Premium Outdoor 40%</p>
+          <p className="text-sm font-bold uppercase text-zinc-400">포지션</p>
+          <p className="mt-3 text-sm font-bold">공식성 60% / 프리미엄 아웃도어 40%</p>
         </div>
       </div>
     </footer>

@@ -11,6 +11,7 @@ import {
   upcomingEvents,
 } from "@/content/seed/site-data";
 import { getEventStatus } from "@/lib/dates/event-status";
+import type { EventStatus } from "@/lib/types/event";
 
 const pathways = [
   {
@@ -21,8 +22,8 @@ const pathways = [
     href: "/athlete-program",
   },
   {
-    title: "Safety Education",
-    ko: "안전교육",
+    title: "Education",
+    ko: "교육",
     index: "02",
     text: "눈사태 안전교육과 WFR 관련 교육을 프리라이딩의 기본으로 둡니다.",
     href: "/safety-education",
@@ -45,6 +46,13 @@ const pathways = [
 
 const values = ["FUN", "RESPECT", "SAFETY", "SNOW MOUNTAINS", "GREEN MOUNTAINS"];
 
+const eventStatusLabels: Record<EventStatus, string> = {
+  upcoming: "예정",
+  live: "진행중",
+  completed: "완료",
+  cancelled: "취소",
+};
+
 export default function Home() {
   return (
     <>
@@ -56,9 +64,9 @@ export default function Home() {
           <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.08fr_0.92fr] md:py-20 lg:min-h-[780px] lg:items-center">
             <div className="fk-reveal max-w-4xl">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge tone="red">Official freeride platform</Badge>
+                <Badge tone="red">공식 프리라이드 플랫폼</Badge>
                 <span className="text-xs font-black uppercase text-zinc-500">
-                  Korea / Athlete / Safety / Culture
+                  한국 / 선수 육성 / 안전 / 컬쳐
                 </span>
               </div>
               <h1 className="mt-7 max-w-full text-[42px] font-black leading-[0.96] tracking-tight sm:text-6xl md:text-7xl">
@@ -70,17 +78,18 @@ export default function Home() {
                 문화를 연결하는 공식 플랫폼.
               </p>
               <p className="mt-5 max-w-full text-base leading-7 text-zinc-600 md:max-w-2xl">
-                A Korean freeride platform built for athlete development,
-                avalanche safety, WFR-related education, freeride travel,
-                official event information, and mountain culture.
+                선수 육성, 눈사태 안전, WFR 관련 교육, 프리라이드 투어,
+                공식 대회 정보, 산악 문화를 한곳에서 연결합니다.
               </p>
               <div className="mt-9 grid gap-3 sm:flex sm:flex-wrap">
-                <Button href="/athlete-program">Athlete Program</Button>
+                <Button href="/athlete-program" variant="secondary">
+                  선수 프로그램
+                </Button>
                 <Button href="/safety-education" variant="secondary">
-                  Safety Education
+                  교육
                 </Button>
                 <Button href="/contact-join" variant="ghost">
-                  Contact / Join
+                  문의 / 참여
                 </Button>
               </div>
             </div>
@@ -105,7 +114,7 @@ export default function Home() {
         <section className="mx-auto grid max-w-7xl gap-6 px-5 py-20 lg:grid-cols-[0.82fr_1.18fr]">
           <div className="max-w-xl">
             <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
-              Core pathways
+              주요 흐름
             </p>
             <h2 className="mt-4 text-4xl font-black leading-tight tracking-tight">
               하나의 브랜드 안에서 훈련, 안전, 투어, 대회 정보를 연결합니다.
@@ -126,9 +135,6 @@ export default function Home() {
                   {item.index}
                 </span>
                 <span>
-                  <span className="block text-sm font-black uppercase text-[var(--color-fk-blue)]">
-                    {item.title}
-                  </span>
                   <span className="mt-2 block text-2xl font-black">{item.ko}</span>
                 </span>
                 <span className="text-sm leading-6 text-zinc-600 transition-colors group-hover:text-zinc-900">
@@ -144,7 +150,7 @@ export default function Home() {
         <section className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[1fr_1.35fr]">
           <div className="lg:sticky lg:top-28 lg:self-start">
             <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
-              Programs and tours
+              프로그램과 투어
             </p>
             <h2 className="mt-4 text-4xl font-black tracking-tight">
               모집 예정 항목을 운영 공지처럼 노출합니다.
@@ -164,8 +170,7 @@ export default function Home() {
                   <Badge tone="blue">{"kind" in item ? item.kind : item.region}</Badge>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black tracking-tight">{item.title.en}</h3>
-                  <p className="mt-2 text-lg font-bold">{item.title.ko}</p>
+                  <h3 className="text-2xl font-black tracking-tight">{item.title.ko}</h3>
                   <p className="mt-4 text-sm leading-6 text-zinc-600">
                     {item.summary.ko}
                   </p>
@@ -179,7 +184,7 @@ export default function Home() {
           <div className="grid gap-8 border-y border-zinc-200 py-10 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
               <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
-                Upcoming Events
+                예정 이벤트
               </p>
               <h2 className="mt-4 text-4xl font-black tracking-tight">
                 Official Major와 FWT Pathway를 구분해 관리합니다.
@@ -191,11 +196,10 @@ export default function Home() {
                   key={event.id}
                   className="border-l-4 border-[var(--color-fk-red)] bg-white p-6 shadow-[var(--shadow-diffused)]"
                 >
-                  <Badge tone="red">{getEventStatus(event)}</Badge>
+                  <Badge tone="red">{eventStatusLabels[getEventStatus(event)]}</Badge>
                   <h3 className="mt-5 text-3xl font-black tracking-tight">
-                    {event.name.en}
+                    {event.name.ko}
                   </h3>
-                  <p className="mt-2 text-lg font-bold">{event.name.ko}</p>
                   <p className="mt-4 text-sm leading-6 text-zinc-600">
                     {event.summary.ko}
                   </p>

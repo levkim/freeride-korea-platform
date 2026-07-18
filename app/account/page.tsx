@@ -17,7 +17,7 @@ export default function AccountPage() {
             회원 등급, 신청, 제출 초안, 중고장터 매물, 알림을 확인합니다.
           </p>
         </div>
-        <Button href="/">Back to Site</Button>
+        <Button href="/">사이트로 돌아가기</Button>
       </div>
       <section className="mt-8 grid gap-5 md:grid-cols-3">
         <article className="border border-zinc-200 bg-white p-6">

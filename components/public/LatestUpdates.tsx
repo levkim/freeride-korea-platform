@@ -11,10 +11,10 @@ export function LatestUpdates({ items }: LatestUpdatesProps) {
       <div className="grid gap-6 md:grid-cols-[0.75fr_1.25fr] md:items-end">
         <div>
           <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
-            Latest Updates
+            최신 소식
           </p>
           <h2 className="mt-3 text-4xl font-black tracking-tight">
-            News, courses, tours, notices
+            뉴스, 교육, 투어, 공지를 한곳에서 확인합니다.
           </h2>
         </div>
         <p className="max-w-2xl text-base leading-7 text-zinc-600 md:justify-self-end">

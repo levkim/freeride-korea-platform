@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "qa:links": "node ./scripts/qa-internal-links.mjs",
+    "qa:release": "npm run lint && npm run qa:links"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

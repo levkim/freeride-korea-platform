@@ -14,11 +14,9 @@ export function ContentCard({ item }: ContentCardProps) {
         <StatusBadge status={item.status} />
       </div>
       <h3 className="mt-5 text-xl font-black tracking-tight transition-colors group-hover:text-[var(--color-fk-blue)]">
-        {item.title.en}
+        {item.title.ko}
       </h3>
-      <p className="mt-2 text-base font-bold text-zinc-800">{item.title.ko}</p>
       <p className="mt-4 text-sm leading-6 text-zinc-600">{item.summary.ko}</p>
-      <p className="mt-3 text-sm leading-6 text-zinc-500">{item.summary.en}</p>
     </article>
   );
 }

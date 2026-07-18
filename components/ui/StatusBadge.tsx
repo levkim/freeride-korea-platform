@@ -7,11 +7,18 @@ type StatusBadgeProps = {
 export function StatusBadge({ status }: StatusBadgeProps) {
   const normalized = status.toLowerCase();
   const tone =
-    normalized.includes("published") || normalized.includes("open")
+    normalized.includes("cancelled") || normalized.includes("high")
+      ? "red"
+      : normalized.includes("live") ||
+          normalized.includes("published") ||
+          normalized.includes("open") ||
+          normalized.includes("completed")
       ? "green"
-      : normalized.includes("review") || normalized.includes("soon")
+      : normalized.includes("review") ||
+          normalized.includes("soon") ||
+          normalized.includes("upcoming")
         ? "blue"
-        : normalized.includes("risk") || normalized.includes("high")
+        : normalized.includes("risk")
           ? "red"
           : normalized.includes("draft") || normalized.includes("new")
             ? "amber"

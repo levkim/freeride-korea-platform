@@ -16,8 +16,8 @@ const regions = [
 const tourTypes = [
   {
     title: "Resort Based",
-    ko: "리조트 기반",
-    text: "리프트 접근성과 현장 컨디션을 활용하는 프리라이드 투어입니다.",
+    ko: "프리라이딩 기반",
+    text: "스키장을 비롯 다운힐 프리라이딩 스타일의 원정 투어 입니다. 리조트, 캣투어, 헬리스키, 스노모빌 투어등에 해당 됩니다.",
   },
   {
     title: "Backcountry",
@@ -37,11 +37,16 @@ const tourTypes = [
 ];
 
 const quickFacts = [
-  ["Regions", "관리자 추가 / 삭제 가능"],
-  ["Application", "신청 폼 기반 접수"],
-  ["Publishing", "정회원 이상 작성, 관리자 게시"],
-  ["Safety", "장비, 보험, 안전교육 고지 포함"],
+  ["지역", "관리자 추가 / 삭제 가능"],
+  ["신청", "신청 폼 기반 접수"],
+  ["게시", "정회원 이상 작성, 관리자 게시"],
+  ["안전", "장비, 보험, 안전교육 고지 포함"],
 ];
+
+const tourDetailHrefs: Record<string, string> = {
+  "tour-1": "/freeride-tour/japan-powder-freeride-tour",
+  "tour-2": "/freeride-tour/custom-freeride-expedition",
+};
 
 export default function FreerideTourPage() {
   return (
@@ -54,9 +59,8 @@ export default function FreerideTourPage() {
             <div className="fk-reveal">
               <Badge tone="blue">Freeride Tour</Badge>
               <h1 className="mt-7 max-w-full text-[40px] font-black leading-[1.02] tracking-tight sm:text-5xl md:text-7xl">
-                <span className="block">Mountain travel,</span>
-                <span className="block">built for freeride</span>
-                <span className="block">culture.</span>
+                <span className="block">프리라이드 문화를</span>
+                <span className="block">경험하는 산악 여행.</span>
               </h1>
               <p className="mt-7 max-w-full text-lg font-black leading-8 text-zinc-900 sm:text-xl md:max-w-3xl md:leading-9">
                 프리라이드 여행, 백컨트리 원정, 리조트 기반 캠프, 맞춤 투어를
@@ -68,16 +72,18 @@ export default function FreerideTourPage() {
                 보여주는 구조로 설계합니다.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Button href="/contact-join">Tour Inquiry</Button>
+                <Button href="/contact-join" variant="secondary">
+                  투어 문의
+                </Button>
                 <Button href="#tour-list" variant="secondary">
-                  View Tours
+                  투어 보기
                 </Button>
               </div>
             </div>
 
             <div className="fk-reveal grid content-end gap-4">
               <div className="border border-zinc-200 bg-white p-5 shadow-[var(--shadow-diffused)]">
-                <p className="fk-nav-type text-4xl leading-none">TOUR BOARD</p>
+                <p className="fk-nav-type text-4xl leading-none">투어 보드</p>
                 <div className="mt-8 grid gap-4">
                   {quickFacts.map(([label, value]) => (
                     <div
@@ -94,7 +100,7 @@ export default function FreerideTourPage() {
               </div>
               <div className="border-l-4 border-[var(--color-fk-red)] bg-white p-5">
                 <p className="text-sm font-black uppercase text-zinc-500">
-                  Cancellation / Refund
+                  취소 / 환불
                 </p>
                 <p className="mt-3 text-sm leading-6 text-zinc-600">
                   모든 투어 상세에는 취소/환불 규정, 보험 권장, 필수 장비,
@@ -107,7 +113,7 @@ export default function FreerideTourPage() {
 
         <section className="mx-auto max-w-7xl px-5 py-14">
           <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
-            Region taxonomy
+            지역 분류
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             {regions.map((region) => (
@@ -128,7 +134,7 @@ export default function FreerideTourPage() {
         <section className="mx-auto grid max-w-7xl gap-8 px-5 py-14 lg:grid-cols-[0.82fr_1.18fr]">
           <div>
             <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
-              Tour types
+              투어 유형
             </p>
             <h2 className="mt-4 text-4xl font-black tracking-tight">
               여행 경험과 산악 판단을 구분해서 보여줍니다.
@@ -140,8 +146,7 @@ export default function FreerideTourPage() {
                 key={type.title}
                 className="border-t border-zinc-200 bg-white/70 p-5"
               >
-                <p className="fk-nav-type text-2xl leading-none">{type.title}</p>
-                <p className="mt-3 text-lg font-black">{type.ko}</p>
+                <p className="fk-nav-type text-2xl leading-none">{type.ko}</p>
                 <p className="mt-3 text-sm leading-6 text-zinc-600">{type.text}</p>
               </article>
             ))}
@@ -152,7 +157,7 @@ export default function FreerideTourPage() {
           <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
             <div>
               <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
-                Tour list
+                투어 목록
               </p>
               <h2 className="mt-4 text-4xl font-black tracking-tight">
                 모집 예정 투어
@@ -180,9 +185,8 @@ export default function FreerideTourPage() {
                     <Badge tone="blue">{tour.status}</Badge>
                   </div>
                   <h3 className="mt-5 text-3xl font-black tracking-tight">
-                    {tour.title.en}
+                    {tour.title.ko}
                   </h3>
-                  <p className="mt-2 text-xl font-bold">{tour.title.ko}</p>
                   <p className="mt-4 max-w-2xl text-sm leading-6 text-zinc-600">
                     {tour.summary.ko}
                   </p>
@@ -190,18 +194,26 @@ export default function FreerideTourPage() {
                 <div className="grid content-between gap-4 border-t border-zinc-200 pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
                   <div>
                     <p className="text-xs font-black uppercase text-zinc-500">
-                      Required blocks
+                      필수 안내 항목
                     </p>
                     <ul className="mt-3 grid gap-2 text-sm font-bold text-zinc-700">
-                      <li>Itinerary</li>
-                      <li>Included / Not included</li>
-                      <li>Safety & insurance</li>
-                      <li>Refund policy</li>
+                      <li>일정표</li>
+                      <li>포함 / 불포함 사항</li>
+                      <li>안전 및 보험</li>
+                      <li>환불 규정</li>
                     </ul>
                   </div>
-                  <Button href="/contact-join" variant="secondary">
-                    Apply / Inquiry
-                  </Button>
+                  <div className="grid gap-2">
+                    <Button
+                      href={tourDetailHrefs[tour.id] ?? "/contact-join"}
+                      variant="secondary"
+                    >
+                      상세 보기
+                    </Button>
+                    <Button href="/contact-join" variant="secondary">
+                      신청 / 문의
+                    </Button>
+                  </div>
                 </div>
               </article>
             ))}
