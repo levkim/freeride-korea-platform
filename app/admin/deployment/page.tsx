@@ -10,6 +10,67 @@ type ChecklistItem = {
   status: string;
 };
 
+type EnvironmentItem = {
+  key: string;
+  purpose: string;
+  source: string;
+  required: boolean;
+  isConfigured: boolean;
+  displayValue: string;
+};
+
+function getEnvironmentItems(): EnvironmentItem[] {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+  const adminAccessKey = process.env.ADMIN_ACCESS_KEY || "";
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const storageBucket =
+    process.env.SUPABASE_STORAGE_CONTENT_BUCKET || "content-images";
+
+  return [
+    {
+      key: "NEXT_PUBLIC_SITE_URL",
+      purpose: "사이트 주소, sitemap, robots, 배포 후 QA 기준 URL",
+      source: "호스팅 서비스에서 확정한 운영 도메인",
+      required: true,
+      isConfigured: Boolean(siteUrl),
+      displayValue: siteUrl || "미설정",
+    },
+    {
+      key: "ADMIN_ACCESS_KEY",
+      purpose: "Supabase Auth 전까지 관리자 화면을 보호하는 임시 접근 키",
+      source: "운영자가 직접 정하는 16자 이상 비밀값",
+      required: true,
+      isConfigured: Boolean(adminAccessKey),
+      displayValue: adminAccessKey ? "설정됨" : "미설정",
+    },
+    {
+      key: "NEXT_PUBLIC_SUPABASE_URL",
+      purpose: "Supabase 프로젝트 API URL",
+      source: "Supabase Project Settings > API",
+      required: true,
+      isConfigured: Boolean(supabaseUrl),
+      displayValue: supabaseUrl || "미설정",
+    },
+    {
+      key: "SUPABASE_SERVICE_ROLE_KEY",
+      purpose: "서버 액션에서 문의, 게시물, 검토 기록을 저장하는 service role key",
+      source: "Supabase Project Settings > API",
+      required: true,
+      isConfigured: Boolean(serviceRoleKey),
+      displayValue: serviceRoleKey ? "설정됨" : "미설정",
+    },
+    {
+      key: "SUPABASE_STORAGE_CONTENT_BUCKET",
+      purpose: "관리자 이미지 업로드가 사용할 Storage bucket 이름",
+      source: "기본값 content-images 사용 가능",
+      required: false,
+      isConfigured: true,
+      displayValue: storageBucket,
+    },
+  ];
+}
+
 function getDeploymentChecklist(): ChecklistItem[] {
   const supabaseStatus = getSupabaseAdminStatus();
   const siteUrl = getSiteUrl();
@@ -95,6 +156,7 @@ export const dynamic = "force-dynamic";
 
 export default function AdminDeploymentPage() {
   const checklist = getDeploymentChecklist();
+  const environmentItems = getEnvironmentItems();
   const readyCount = checklist.filter((item) => item.ready).length;
 
   return (
@@ -135,6 +197,74 @@ export default function AdminDeploymentPage() {
             </p>
           </article>
         ))}
+      </section>
+
+      <section className="mt-8 border border-zinc-200 bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
+              Environment Variables
+            </p>
+            <h2 className="mt-3 text-2xl font-black">운영 환경변수</h2>
+            <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+              실제 배포 서비스의 Environment Variables 메뉴에 아래 값을 입력합니다.
+              필수값이 비어 있으면 운영 배포 전 `npm run qa:deploy-env`에서
+              실패하도록 했습니다.
+            </p>
+          </div>
+          <Badge
+            tone={
+              environmentItems.every((item) => !item.required || item.isConfigured)
+                ? "green"
+                : "amber"
+            }
+          >
+            {
+              environmentItems.filter((item) => !item.required || item.isConfigured)
+                .length
+            }{" "}
+            / {environmentItems.length} 확인
+          </Badge>
+        </div>
+
+        <div className="mt-5 grid gap-3">
+          {environmentItems.map((item) => (
+            <article
+              key={item.key}
+              className="grid gap-4 border border-zinc-200 bg-zinc-50 p-4 lg:grid-cols-[220px_1fr_180px]"
+            >
+              <div>
+                <code className="text-sm font-black text-zinc-950">
+                  {item.key}
+                </code>
+                <div className="mt-2">
+                  <Badge
+                    tone={
+                      item.required && !item.isConfigured ? "amber" : "green"
+                    }
+                  >
+                    {item.required
+                      ? item.isConfigured
+                        ? "필수 설정됨"
+                        : "필수 미설정"
+                      : "선택"}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-black text-zinc-700">
+                  {item.purpose}
+                </p>
+                <p className="mt-2 text-sm font-bold leading-6 text-zinc-500">
+                  {item.source}
+                </p>
+              </div>
+              <p className="break-all border border-zinc-200 bg-white px-3 py-2 text-sm font-black text-zinc-700">
+                {item.displayValue}
+              </p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="mt-8 border border-zinc-200 bg-white p-5">
