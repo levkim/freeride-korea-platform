@@ -79,6 +79,39 @@ const setupSteps = [
   ],
 ];
 
+const executionCommands = [
+  [
+    "1",
+    "기본 테이블 생성",
+    "docs/database/supabase-schema-v1.sql",
+    "Supabase SQL Editor에서 전체 내용을 먼저 실행합니다.",
+  ],
+  [
+    "2",
+    "RLS 보안 적용",
+    "docs/database/supabase-rls-hotfix-v1.sql",
+    "기본 테이블 생성 직후 실행하고 Supabase Advisors 경고를 확인합니다.",
+  ],
+  [
+    "3",
+    "이미지 버킷 생성",
+    "docs/database/supabase-storage-v1.md",
+    "Storage에서 content-images bucket을 만들고 공개 이미지 정책을 확인합니다.",
+  ],
+  [
+    "4",
+    "환경변수 점검",
+    "npm run qa:deploy-env",
+    "운영 도메인, 관리자 접근 키, Supabase URL, service role key를 확인합니다.",
+  ],
+  [
+    "5",
+    "앱 연결 점검",
+    "/admin/data-setup",
+    "환경변수 설정 후 서버를 재시작하고 이 페이지의 Live DB Check를 확인합니다.",
+  ],
+];
+
 const rlsPolicies = [
   ["members", "RLS 활성화, 공개 직접 조회/수정 없음"],
   ["content_entries", "published 상태 콘텐츠만 공개 조회"],
@@ -201,6 +234,46 @@ export default async function AdminDataSetupPage() {
             ))}
           </div>
         </article>
+      </section>
+
+      <section className="mt-8 border border-zinc-200 bg-white p-5">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
+              Setup Runbook
+            </p>
+            <h2 className="mt-3 text-2xl font-black">
+              Supabase 적용 실행 순서
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+              Supabase 프로젝트를 만든 뒤 아래 순서대로 진행합니다. 이 순서는
+              로컬 개발용이 아니라 실제 DB 연결 전환을 위한 운영 체크리스트입니다.
+            </p>
+          </div>
+          <Badge tone="amber">Supabase 생성 후 진행</Badge>
+        </div>
+
+        <div className="mt-5 grid gap-3">
+          {executionCommands.map(([number, title, command, description]) => (
+            <article
+              key={number}
+              className="grid gap-4 border border-zinc-200 bg-zinc-50 p-4 lg:grid-cols-[56px_220px_1fr]"
+            >
+              <p className="fk-nav-type text-3xl leading-none text-[var(--color-fk-red)]">
+                {number}
+              </p>
+              <div>
+                <h3 className="font-black text-zinc-950">{title}</h3>
+                <p className="mt-2 text-sm font-bold leading-6 text-zinc-600">
+                  {description}
+                </p>
+              </div>
+              <code className="block break-all border border-zinc-200 bg-white px-4 py-3 text-sm font-black text-zinc-800">
+                {command}
+              </code>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="mt-8 border border-zinc-200 bg-white p-5">
