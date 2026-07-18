@@ -16,6 +16,8 @@ Next.js web application for the FREERIDE KOREA public website, member portal, an
 - `/about`
 - `/contact-join`
 - `/account`
+- `/health`
+- `/healthz`
 - `/admin`
 - `/admin/review-queue`
 
@@ -32,7 +34,7 @@ npm run build
 ```
 
 `qa:links` checks rendered internal links against the local server. Run the dev server first.
-`qa:runtime` checks the `/healthz` endpoint against the local server.
+`qa:runtime` checks the `/healthz` endpoint against the local server. Use `/health` for a browser-readable status page.
 `qa:seo` checks the rendered home metadata, `robots.txt`, and `sitemap.xml`.
 `qa:release` runs lint, internal-link QA, SEO QA, and runtime QA together.
 

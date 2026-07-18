@@ -71,9 +71,9 @@ function getDeploymentChecklist(): ChecklistItem[] {
     {
       title: "헬스 체크",
       description:
-        "배포 후 /healthz endpoint로 앱 응답, 서비스 이름, 데이터 모드를 빠르게 확인합니다.",
+        "배포 후 /health 페이지는 사람이 확인하고, /healthz endpoint는 모니터링 도구가 앱 응답과 데이터 모드를 확인할 때 사용합니다.",
       ready: true,
-      status: "/healthz 준비됨",
+      status: "/health, /healthz 준비됨",
     },
   ];
 }
@@ -81,6 +81,7 @@ function getDeploymentChecklist(): ChecklistItem[] {
 const qaCommands = [
   "npm run qa:release",
   "npm run build",
+  "curl http://localhost:3000/health",
   "curl http://localhost:3000/healthz",
   "QA_BASE_URL=https://your-domain.example npm run qa:release",
 ];
