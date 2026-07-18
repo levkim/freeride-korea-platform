@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,9 +14,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FREERIDE KOREA",
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: "FREERIDE KOREA",
+    template: "%s | FREERIDE KOREA",
+  },
   description:
-    "Korea's official freeride platform for athlete development, education, events, tours, and mountain culture.",
+    "선수 육성, 안전 교육, 대회 정보, 프리라이드 투어와 산악 문화를 연결하는 한국 프리라이드 플랫폼입니다.",
+  openGraph: {
+    title: "FREERIDE KOREA",
+    description:
+      "선수 육성, 안전 교육, 대회 정보, 프리라이드 투어와 산악 문화를 연결하는 한국 프리라이드 플랫폼입니다.",
+    url: getSiteUrl(),
+    siteName: "FREERIDE KOREA",
+    locale: "ko_KR",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
