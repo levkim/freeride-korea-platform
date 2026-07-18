@@ -42,3 +42,6 @@ jobs:
 
       - name: Release QA
         run: npm run qa:release
+
+      - name: Smoke QA
+        run: npm run qa:smoke
