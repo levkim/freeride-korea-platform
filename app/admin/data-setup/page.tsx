@@ -8,8 +8,8 @@ const schemaObjects = [
   ["event_entries", "대회 일정, 시리즈, 국가, 장소, 링크"],
   ["content_links", "콘텐츠 관련 외부 링크"],
   ["review_queue_items", "관리자 검토 대기열"],
-  ["review_events", "승인, 게시, 수정요청, 반려 기록"],
-  ["inquiry_entries", "문의/참여/회원 신청 접수"],
+  ["review_events", "승인, 게시, 수정 요청, 반려 기록"],
+  ["inquiry_entries", "문의, 참여, 회원 신청 접수"],
   ["inquiry_events", "문의 처리 상태 변경 기록"],
   ["comments", "회원 댓글, 신고 수, 고정 여부, 노출 상태"],
   ["comment_events", "댓글 공개, 숨김, 삭제, 신고, 고정 처리 기록"],
@@ -31,11 +31,8 @@ const envRows = [
   [
     "SUPABASE_SERVICE_ROLE_KEY",
     "서버 전용 service role key",
-    "관리자 server action에서만 사용합니다. 브라우저에 노출하면 안 됩니다.",
+    "관리자 server action에서만 사용합니다. 브라우저에 노출되면 안 됩니다.",
   ],
-];
-
-const storageEnvRows = [
   [
     "SUPABASE_STORAGE_CONTENT_BUCKET",
     "콘텐츠 이미지 Storage 버킷",
@@ -51,38 +48,60 @@ const setupSteps = [
   ],
   [
     "2",
-    "스키마 SQL 적용",
+    "기본 스키마 SQL 적용",
     "docs/database/supabase-schema-v1.sql 내용을 Supabase SQL Editor에서 실행합니다.",
   ],
   [
     "3",
+    "RLS 보안 핫픽스 적용",
+    "docs/database/supabase-rls-hotfix-v1.sql을 실행해 모든 public table의 RLS를 켭니다.",
+  ],
+  [
+    "4",
     ".env.local 작성",
     ".env.example을 복사해 NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 값을 넣습니다.",
   ],
   [
-    "4",
+    "5",
     "로컬 서버 재시작",
     "환경변수는 서버 시작 시 읽히므로 npm run dev를 다시 실행합니다.",
   ],
   [
-    "5",
+    "6",
     "관리자 화면 확인",
     "/admin에서 데이터 저장 상태가 supabase로 바뀌는지 확인합니다.",
   ],
   [
-    "6",
+    "7",
     "테스트 입력",
     "문의, 카테고리 초안, 검토 액션을 하나씩 입력해 실제 DB에 저장되는지 확인합니다.",
   ],
 ];
 
+const rlsPolicies = [
+  ["members", "RLS 활성화, 공개 직접 조회/수정 없음"],
+  ["content_entries", "published 상태 콘텐츠만 공개 조회"],
+  ["event_entries", "published 콘텐츠에 연결된 이벤트만 공개 조회"],
+  ["content_links", "published 콘텐츠에 연결된 링크만 공개 조회"],
+  ["review_queue_items", "관리자 서버 액션 전용"],
+  ["inquiry_entries", "문의 저장/처리 서버 액션 전용"],
+  ["review_events", "관리자 검토 이력 서버 액션 전용"],
+  ["inquiry_events", "문의 처리 이력 서버 액션 전용"],
+  ["comments", "published 콘텐츠의 visible 댓글만 공개 조회"],
+  ["comment_events", "댓글 관리 이력 서버 액션 전용"],
+];
+
 const persistenceAreas = [
-  ["문의/참여", "inquiry_entries, inquiry_events", "이미 Supabase 저장 경계 구현"],
-  ["카테고리 초안", "content_entries, review_queue_items", "이미 Supabase 저장 경계 구현"],
-  ["검토 액션", "review_events, review_queue_items, content_entries", "이미 Supabase 상태 동기화 구현"],
+  ["문의/참여", "inquiry_entries, inquiry_events", "Supabase 저장 경계 구현"],
+  ["카테고리 초안", "content_entries, review_queue_items", "Supabase 저장 경계 구현"],
+  [
+    "검토 액션",
+    "review_events, review_queue_items, content_entries",
+    "Supabase 상태 동기화 구현",
+  ],
   ["카테고리 목록/상세", "content_entries", "Supabase 읽기 + seed fallback 구현"],
   ["검토 대기열", "review_queue_items, review_events", "Supabase 읽기 + seed fallback 구현"],
-  ["이벤트/뉴스 전용 CMS", "content_entries, event_entries", "다음 구현 후보"],
+  ["이벤트/뉴스 전용 CMS", "content_entries, event_entries", "전용 작성 폼 구현"],
   ["댓글", "comments, comment_events", "스키마 준비 + mock 관리 액션 구현"],
   ["이미지 업로드", "storage bucket: content-images", "업로드 UI 준비 + Storage 연결 문서화"],
 ];
@@ -103,9 +122,9 @@ export default function AdminDataSetupPage() {
           </p>
           <h1 className="mt-3 text-4xl font-black">DB 연결 준비</h1>
           <p className="mt-3 max-w-3xl text-zinc-600">
-            현재 로컬 seed 데이터 기반 화면을 Supabase 저장 구조로 넘기기 위한
-            체크리스트입니다. 실제 저장 전환 전에 환경변수, 스키마, 저장 영역을
-            한 번에 확인합니다.
+            로컬 seed 데이터 기반 화면을 Supabase 저장 구조로 넘기기 위한
+            운영 체크리스트입니다. 실제 저장 전환 전에 환경변수, 스키마, RLS
+            보안, 저장 영역을 한 번에 확인합니다.
           </p>
         </div>
         <Badge tone={supabaseStatus.isConfigured ? "green" : "amber"}>
@@ -126,10 +145,10 @@ export default function AdminDataSetupPage() {
           <p className="mt-3 text-sm font-bold leading-6 text-zinc-600">
             {supabaseStatus.isConfigured
               ? "서버 액션과 repository가 Supabase 저장소를 사용할 수 있는 상태입니다."
-              : "아직 환경변수가 없어서 입력/검토 액션은 검증 모드로 처리되고, 화면은 seed 데이터 fallback을 사용합니다."}
+              : "아직 필수 환경변수가 없어 입력/검토 액션은 검증 모드로 처리되고, 화면은 seed 데이터 fallback을 사용합니다."}
           </p>
           <div className="mt-5 grid gap-3">
-            {[...envRows, ...storageEnvRows].map(([name, label, description]) => {
+            {envRows.map(([name, label, description]) => {
               const isMissing = supabaseStatus.missingEnv.includes(name);
 
               return (
@@ -178,6 +197,36 @@ export default function AdminDataSetupPage() {
             ))}
           </div>
         </article>
+      </section>
+
+      <section className="mt-8 border border-zinc-200 bg-white p-5">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
+              RLS 보안
+            </p>
+            <h2 className="mt-3 text-2xl font-black">
+              docs/database/supabase-rls-hotfix-v1.sql
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+              Supabase Advisors의 public table RLS 경고를 처리하기 위한
+              핫픽스입니다. 공개 조회는 published 콘텐츠 중심으로 제한하고,
+              문의/검토/회원/관리 데이터는 서버 액션을 통해서만 다루도록
+              막습니다.
+            </p>
+          </div>
+          <Badge tone="green">적용 필요 항목</Badge>
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {rlsPolicies.map(([table, rule]) => (
+            <div key={table} className="border border-zinc-200 bg-zinc-50 p-4">
+              <p className="font-black text-zinc-950">{table}</p>
+              <p className="mt-2 text-sm font-bold leading-6 text-zinc-600">
+                {rule}
+              </p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="mt-8 border border-zinc-200 bg-white p-5">
