@@ -54,14 +54,16 @@ export function SiteHeader() {
             </span>
           </span>
         </Link>
-        <nav className="hidden min-w-0 items-center gap-6 text-[14px] font-black uppercase text-[var(--color-fk-black)] xl:flex">
+        <nav className="hidden min-w-0 items-center gap-6 text-[15px] font-black uppercase text-[var(--color-fk-black)] xl:flex">
           {navItems.map((item) => (
             <div key={item.href} className="group/nav relative py-2">
               <Link
                 href={item.href}
                 className="relative block whitespace-pre-line text-center leading-[0.95] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:text-[var(--color-fk-red)]"
               >
-                <span className="fk-nav-type">{item.label}</span>
+                <span className="inline-block font-black tracking-normal">
+                  {item.label}
+                </span>
                 <span className="absolute inset-x-0 -bottom-2 h-0.5 origin-left scale-x-0 bg-[var(--color-fk-red)] transition-transform duration-300 ease-out group-hover/nav:scale-x-100" />
               </Link>
               {item.children ? (
@@ -71,7 +73,7 @@ export function SiteHeader() {
                       <Link
                         key={child.href}
                         href={child.href}
-                        className="fk-nav-type block border-b border-zinc-100 px-3 py-3 text-left text-lg leading-none text-zinc-900 transition-colors last:border-b-0 hover:text-[var(--color-fk-red)]"
+                        className="block border-b border-zinc-100 px-3 py-3 text-left text-[19px] font-black leading-none tracking-normal text-zinc-900 transition-colors last:border-b-0 hover:text-[var(--color-fk-red)]"
                       >
                         {child.label}
                       </Link>
