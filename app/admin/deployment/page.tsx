@@ -143,8 +143,10 @@ const qaCommands = [
   "npm run qa:release",
   "npm run build",
   "npm run qa:deploy-env",
+  "npm run qa:smoke",
   "curl http://localhost:3000/health",
   "curl http://localhost:3000/healthz",
+  "QA_BASE_URL=https://your-domain.example npm run qa:smoke",
   "QA_BASE_URL=https://your-domain.example npm run qa:release",
 ];
 
