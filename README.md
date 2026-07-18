@@ -34,6 +34,18 @@ npm run build
 `qa:seo` checks the rendered home metadata, `robots.txt`, and `sitemap.xml`.
 `qa:release` runs lint, internal-link QA, and SEO QA together.
 
+## CI
+
+GitHub Actions runs on pushes and pull requests to `main`:
+
+- `npm ci`
+- `npm run lint`
+- `npm run build`
+- start the built app
+- `npm run qa:release`
+
+The workflow lives at `.github/workflows/ci.yml`.
+
 ## Data Mode
 
 The app currently supports two data modes:
