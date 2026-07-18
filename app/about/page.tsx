@@ -17,8 +17,8 @@ export default function AboutPage() {
       <main>
         <PageHero
           eyebrow="소개"
-          title="신뢰할 수 있는 공식성과 살아 있는 아웃도어 감각을 함께 만듭니다."
-          description="FREERIDE KOREA는 공식성 60%, 프리미엄 아웃도어 40%의 균형으로 한국 프리라이드 생태계를 연결합니다."
+          title="한국 프리라이드의 기준을 세우고, 산을 즐기는 문화를 넓혀갑니다."
+          description="FREERIDE KOREA는 공식적인 운영 기준과 프리미엄 아웃도어 감각을 바탕으로 선수 육성, 안전 교육, 대회 정보, 투어와 커뮤니티를 연결하는 한국 프리라이드 플랫폼입니다."
         />
         <section className="mx-auto max-w-7xl px-5 py-16">
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
