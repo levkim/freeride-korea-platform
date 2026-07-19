@@ -3,6 +3,9 @@ import { Badge } from "@/components/ui/Badge";
 import { getSiteUrl } from "@/lib/site-url";
 import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
 
+const githubActionsUrl =
+  "https://github.com/levkim/freeride-korea-platform/actions/workflows/ci.yml";
+
 type ChecklistItem = {
   title: string;
   description: string;
@@ -200,6 +203,33 @@ export default function AdminDeploymentPage() {
             </p>
           </article>
         ))}
+      </section>
+
+      <section className="mt-8 border border-zinc-200 bg-white p-5">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
+              GitHub Actions
+            </p>
+            <h2 className="mt-3 text-2xl font-black">CI 상태 확인</h2>
+            <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+              GitHub에 push하면 CI가 자동으로 빌드, 릴리즈 QA, 스모크 QA를
+              실행합니다. 배포 전에는 마지막 main 브랜치 실행 결과가 성공인지
+              확인합니다.
+            </p>
+          </div>
+          <a
+            href={githubActionsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="border border-zinc-300 bg-zinc-100 px-4 py-3 text-sm font-black text-zinc-950 transition hover:bg-white"
+          >
+            Actions 열기
+          </a>
+        </div>
+        <p className="mt-4 break-all border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-black text-zinc-700">
+          {githubActionsUrl}
+        </p>
       </section>
 
       <section className="mt-8 border border-zinc-200 bg-white p-5">

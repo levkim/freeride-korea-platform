@@ -1,5 +1,7 @@
 # FREERIDE KOREA Webapp
 
+[![CI](https://github.com/levkim/freeride-korea-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/levkim/freeride-korea-platform/actions/workflows/ci.yml)
+
 Next.js web application for the FREERIDE KOREA public website, member portal, and admin operations platform.
 
 ## Stack
