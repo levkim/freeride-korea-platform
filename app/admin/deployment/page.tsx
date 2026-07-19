@@ -140,6 +140,7 @@ function getDeploymentChecklist(): ChecklistItem[] {
 }
 
 const qaCommands = [
+  "npm run qa:preflight",
   "npm run qa:release",
   "npm run build",
   "npm run qa:deploy-env",

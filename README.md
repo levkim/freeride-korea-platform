@@ -32,6 +32,7 @@ npm run qa:seo
 npm run qa:deploy-env
 npm run qa:smoke
 npm run qa:release
+npm run qa:preflight
 npm run build
 ```
 
@@ -41,6 +42,7 @@ npm run build
 `qa:deploy-env` checks production environment readiness. It is expected to fail before the real domain, admin key, and Supabase project are configured.
 `qa:smoke` checks critical public, admin, health, robots, and sitemap routes against the local or deployed server.
 `qa:release` runs lint, internal-link QA, SEO QA, and runtime QA together.
+`qa:preflight` builds the app, starts a temporary production server, then runs release QA and smoke QA before a GitHub push or deployment handoff.
 
 ## CI
 
@@ -51,6 +53,7 @@ GitHub Actions runs on pushes and pull requests to `main`:
 - `npm run build`
 - start the built app
 - `npm run qa:release`
+- `npm run qa:smoke`
 
 The workflow lives at `.github/workflows/ci.yml`.
 
