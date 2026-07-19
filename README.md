@@ -59,6 +59,27 @@ GitHub Actions runs on pushes and pull requests to `main`:
 
 The workflow lives at `.github/workflows/ci.yml`.
 
+## Hosting
+
+Initial hosting settings are documented in:
+
+```text
+docs/deployment/hosting-setup-v1.md
+```
+
+Before deployment handoff:
+
+```powershell
+npm run qa:preflight
+```
+
+After deployment:
+
+```powershell
+QA_BASE_URL=https://your-domain.example npm run qa:smoke
+QA_BASE_URL=https://your-domain.example npm run qa:release
+```
+
 ## Data Mode
 
 The app currently supports two data modes:

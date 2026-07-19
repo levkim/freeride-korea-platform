@@ -6,6 +6,17 @@ import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
 const githubActionsUrl =
   "https://github.com/levkim/freeride-korea-platform/actions/workflows/ci.yml";
 
+const hostingSettings = [
+  ["Repository", "levkim/freeride-korea-platform"],
+  ["Production branch", "main"],
+  ["Node.js version", "20"],
+  ["Install command", "npm ci"],
+  ["Build command", "npm run build"],
+  ["Start command", "npm run start"],
+  ["Health check path", "/healthz"],
+  ["Post-deploy smoke QA", "QA_BASE_URL=https://your-domain.example npm run qa:smoke"],
+];
+
 type ChecklistItem = {
   title: string;
   description: string;
@@ -230,6 +241,37 @@ export default function AdminDeploymentPage() {
         <p className="mt-4 break-all border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-black text-zinc-700">
           {githubActionsUrl}
         </p>
+      </section>
+
+      <section className="mt-8 border border-zinc-200 bg-white p-5">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
+              Hosting Setup
+            </p>
+            <h2 className="mt-3 text-2xl font-black">호스팅 설정값</h2>
+            <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+              Vercel, Netlify, Render 등 Next.js를 지원하는 호스팅 서비스에
+              프로젝트를 연결할 때 사용하는 기본 설정입니다. 실제 도메인이 정해지면
+              `NEXT_PUBLIC_SITE_URL`과 배포 후 QA 명령의 URL만 교체합니다.
+            </p>
+          </div>
+          <Badge tone="green">Next.js 기준</Badge>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          {hostingSettings.map(([label, value]) => (
+            <div
+              key={label}
+              className="grid gap-2 border border-zinc-200 bg-zinc-50 p-4 md:grid-cols-[160px_1fr]"
+            >
+              <p className="text-sm font-black text-zinc-500">{label}</p>
+              <code className="break-all text-sm font-black text-zinc-950">
+                {value}
+              </code>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="mt-8 border border-zinc-200 bg-white p-5">
