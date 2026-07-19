@@ -66,6 +66,7 @@ Initial hosting settings are documented in:
 ```text
 docs/deployment/hosting-setup-v1.md
 docs/deployment/production-launch-checklist-v1.md
+docs/deployment/final-prelaunch-audit-v1.md
 ```
 
 Before deployment handoff:

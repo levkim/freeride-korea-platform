@@ -2,6 +2,12 @@
 
 Use this checklist when FREERIDE KOREA moves from local/mock mode to a public hosting deployment.
 
+Final prelaunch audit:
+
+```text
+docs/deployment/final-prelaunch-audit-v1.md
+```
+
 ## 1. Repository
 
 - [ ] Confirm latest work is pushed to `main`.
