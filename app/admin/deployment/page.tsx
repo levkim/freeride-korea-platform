@@ -6,6 +6,29 @@ import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
 const githubActionsUrl =
   "https://github.com/levkim/freeride-korea-platform/actions/workflows/ci.yml";
 
+const deploymentDocs = [
+  [
+    "Production launch checklist",
+    "docs/deployment/production-launch-checklist-v1.md",
+    "배포 당일 GitHub, Supabase, 호스팅, 환경변수, 배포 후 QA를 순서대로 체크합니다.",
+  ],
+  [
+    "Hosting setup",
+    "docs/deployment/hosting-setup-v1.md",
+    "호스팅 서비스에 입력할 브랜치, Node 버전, build/start 명령, health check 경로를 확인합니다.",
+  ],
+  [
+    "Supabase setup",
+    "docs/database/supabase-schema-v1.sql",
+    "DB 테이블 생성 기준입니다. 이후 RLS hotfix와 Storage 문서를 함께 적용합니다.",
+  ],
+  [
+    "RLS hotfix",
+    "docs/database/supabase-rls-hotfix-v1.sql",
+    "Supabase Advisors의 public table RLS critical 경고를 처리하기 위한 SQL입니다.",
+  ],
+];
+
 const hostingSettings = [
   ["Repository", "levkim/freeride-korea-platform"],
   ["Production branch", "main"],
@@ -214,6 +237,36 @@ export default function AdminDeploymentPage() {
             </p>
           </article>
         ))}
+      </section>
+
+      <section className="mt-8 border border-zinc-200 bg-white p-5">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+          <div>
+            <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
+              Deployment Documents
+            </p>
+            <h2 className="mt-3 text-2xl font-black">배포 문서 바로가기</h2>
+            <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+              실제 배포 작업은 아래 문서를 기준으로 진행합니다. 관리자 화면은
+              상태 확인용이고, 이 문서들은 실행 순서와 설정값을 고정해 둔 기준입니다.
+            </p>
+          </div>
+          <Badge tone="green">운영 기준 문서</Badge>
+        </div>
+
+        <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          {deploymentDocs.map(([title, path, description]) => (
+            <article key={path} className="border border-zinc-200 bg-zinc-50 p-4">
+              <h3 className="text-lg font-black text-zinc-950">{title}</h3>
+              <p className="mt-2 text-sm font-bold leading-6 text-zinc-600">
+                {description}
+              </p>
+              <code className="mt-3 block break-all border border-zinc-200 bg-white px-3 py-2 text-sm font-black text-zinc-800">
+                {path}
+              </code>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="mt-8 border border-zinc-200 bg-white p-5">
