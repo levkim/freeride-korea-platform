@@ -14,7 +14,9 @@
     "qa:smoke": "node ./scripts/qa-smoke.mjs",
     "qa:release": "npm run lint && npm run qa:links && npm run qa:seo && npm run qa:runtime",
     "qa:preflight": "node ./scripts/qa-preflight.mjs",
-    "db:seed:generate": "node ./scripts/generate-supabase-seed.mjs"
+    "db:seed:generate": "node ./scripts/generate-supabase-seed.mjs",
+    "db:check": "node ./scripts/check-supabase.mjs",
+    "db:storage:ensure": "node ./scripts/check-supabase.mjs --ensure-storage"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

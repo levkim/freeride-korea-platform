@@ -8,6 +8,16 @@
 -- Server-side actions using SUPABASE_SERVICE_ROLE_KEY continue to work because
 -- the service role bypasses RLS. Do not expose the service role key to clients.
 
+grant usage on schema public to anon, authenticated, service_role;
+grant all privileges on all tables in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;
+grant all privileges on all functions in schema public to service_role;
+
+grant select on public.content_entries to anon, authenticated;
+grant select on public.event_entries to anon, authenticated;
+grant select on public.content_links to anon, authenticated;
+grant select on public.comments to anon, authenticated;
+
 alter table public.members enable row level security;
 alter table public.content_entries enable row level security;
 alter table public.event_entries enable row level security;
