@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { MobileMenu } from "@/components/public/MobileMenu";
 import { eventSeriesOptions, getEventSeriesHref } from "@/lib/events/series";
@@ -35,7 +36,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/90 shadow-[0_12px_40px_-35px_rgba(11,13,16,0.6)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-4 py-3 md:px-5">
         <Link href="/" className="flex min-w-0 items-center gap-3">
-          <img
+          <Image
             src="/brand/logo-header.png"
             alt="FREERIDE KOREA"
             width="72"
