@@ -5,6 +5,7 @@ import {
   hasSupabaseAdminEnv,
 } from "@/lib/supabase/admin";
 import type { Member, MemberStatus, MemberType } from "@/lib/types/member";
+import type { MemberUpdateActionInput } from "@/lib/validation/member-action";
 
 type MemberRow = {
   id: string;
@@ -25,6 +26,11 @@ type EnsureGeneralMemberResult = {
   missingEnv?: string[];
   member?: Member;
   created: boolean;
+};
+
+type UpdateMemberResult = {
+  mode: "supabase" | "mock";
+  missingEnv?: string[];
 };
 
 function mapMemberRow(row: MemberRow): Member {
@@ -124,5 +130,34 @@ export async function ensureGeneralMember(
     mode: "supabase",
     member: mapMemberRow(data as MemberRow),
     created: true,
+  };
+}
+
+export async function updateMember(
+  input: MemberUpdateActionInput,
+): Promise<UpdateMemberResult> {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock",
+      missingEnv: getMissingSupabaseAdminEnv(),
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("members")
+    .update({
+      member_type: input.memberType,
+      status: input.status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.memberId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase",
   };
 }

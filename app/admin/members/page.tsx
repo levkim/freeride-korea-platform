@@ -2,11 +2,12 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { Badge } from "@/components/ui/Badge";
 import { listMembers } from "@/lib/repositories/members";
 import type { ContentKind } from "@/lib/types/content";
-import type { Member, MemberType } from "@/lib/types/member";
+import type { Member, MemberStatus, MemberType } from "@/lib/types/member";
 import {
   canAuthorContent,
   contentWorkflowPolicies,
 } from "@/lib/workflow/content-policy";
+import { submitMemberUpdate } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +56,8 @@ const memberStatusLabels = {
   reviewing: "검토중",
   suspended: "정지",
 };
+
+const memberStatusOrder: MemberStatus[] = ["active", "reviewing", "suspended"];
 
 function getMemberCount(members: Member[], memberType: MemberType) {
   return members.filter((member) => member.memberType === memberType).length;
@@ -148,6 +151,18 @@ export default async function AdminMembersPage() {
         </div>
       </div>
 
+      <section className="mt-6 grid gap-3">
+        <div className="border border-zinc-200 bg-white p-4">
+          <p className="text-sm font-black text-zinc-900">
+            회원 등급과 상태는 이 화면에서 바로 수정합니다.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-zinc-600">
+            모든 신규 가입은 일반회원으로 시작하고, 정회원·임원회원·선수회원·스폰서십
+            회원 전환은 운영진 검토 후 저장합니다.
+          </p>
+        </div>
+      </section>
+
       <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {memberTypeOrder.map((memberType) => (
           <article key={memberType} className="border border-zinc-200 bg-white p-5">
@@ -200,12 +215,37 @@ export default async function AdminMembersPage() {
                 </td>
                 <td className="px-4 py-4 font-bold">{member.joinedAt}</td>
                 <td className="px-4 py-4">
-                  <button
-                    type="button"
-                    className="border border-zinc-300 bg-zinc-100 px-3 py-2 text-xs font-black uppercase text-zinc-950 transition-colors hover:bg-zinc-200"
-                  >
-                    검토
-                  </button>
+                  <form action={submitMemberUpdate} className="flex min-w-[300px] flex-wrap items-center gap-2">
+                    <input type="hidden" name="memberId" value={member.id} />
+                    <select
+                      name="memberType"
+                      defaultValue={member.memberType}
+                      className="h-9 border border-zinc-300 bg-white px-2 text-xs font-black text-zinc-950"
+                    >
+                      {memberTypeOrder.map((memberType) => (
+                        <option key={memberType} value={memberType}>
+                          {memberTypeLabels[memberType]}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="status"
+                      defaultValue={member.status}
+                      className="h-9 border border-zinc-300 bg-white px-2 text-xs font-black text-zinc-950"
+                    >
+                      {memberStatusOrder.map((status) => (
+                        <option key={status} value={status}>
+                          {memberStatusLabels[status]}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="submit"
+                      className="h-9 border border-zinc-300 bg-zinc-100 px-3 text-xs font-black uppercase text-zinc-950 transition-colors hover:bg-zinc-200"
+                    >
+                      저장
+                    </button>
+                  </form>
                 </td>
               </tr>
             ))}
