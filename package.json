@@ -14,6 +14,7 @@
     "qa:assets": "node ./scripts/qa-assets.mjs",
     "qa:membership": "node ./scripts/qa-membership-registration.mjs",
     "qa:member-update": "node ./scripts/qa-member-update.mjs",
+    "qa:member-upgrade-approval": "node ./scripts/qa-member-upgrade-approval.mjs",
     "qa:deploy-env": "node ./scripts/qa-deploy-env.mjs",
     "qa:smoke": "node ./scripts/qa-smoke.mjs",
     "qa:release": "npm run lint && npm run qa:links && npm run qa:seo && npm run qa:runtime && npm run qa:assets",
