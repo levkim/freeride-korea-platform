@@ -1,12 +1,14 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Badge } from "@/components/ui/Badge";
-import { mockMembers } from "@/content/seed/site-data";
+import { listMembers } from "@/lib/repositories/members";
 import type { ContentKind } from "@/lib/types/content";
-import type { MemberType } from "@/lib/types/member";
+import type { Member, MemberType } from "@/lib/types/member";
 import {
   canAuthorContent,
   contentWorkflowPolicies,
 } from "@/lib/workflow/content-policy";
+
+export const dynamic = "force-dynamic";
 
 const memberTypeLabels: Record<MemberType, string> = {
   general: "일반회원",
@@ -54,8 +56,8 @@ const memberStatusLabels = {
   suspended: "정지",
 };
 
-function getMemberCount(memberType: MemberType) {
-  return mockMembers.filter((member) => member.memberType === memberType).length;
+function getMemberCount(members: Member[], memberType: MemberType) {
+  return members.filter((member) => member.memberType === memberType).length;
 }
 
 function MemberDescription({ memberType }: { memberType: MemberType }) {
@@ -121,7 +123,9 @@ function MemberDescription({ memberType }: { memberType: MemberType }) {
   );
 }
 
-export default function AdminMembersPage() {
+export default async function AdminMembersPage() {
+  const { items: members, mode } = await listMembers();
+
   return (
     <AdminShell>
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -138,7 +142,9 @@ export default function AdminMembersPage() {
         <div className="flex flex-wrap gap-2">
           <Badge tone="blue">등급별 작성 권한</Badge>
           <Badge tone="amber">관리자 승인</Badge>
-          <Badge tone="neutral">회원 데이터 v1</Badge>
+          <Badge tone="neutral">
+            {mode === "supabase" ? "Supabase 회원 데이터" : "Mock 회원 데이터"}
+          </Badge>
         </div>
       </div>
 
@@ -153,7 +159,7 @@ export default function AdminMembersPage() {
             </p>
             <MemberDescription memberType={memberType} />
             <p className="mt-5 text-3xl font-black">
-              {getMemberCount(memberType)}
+              {getMemberCount(members, memberType)}
             </p>
           </article>
         ))}
@@ -178,7 +184,7 @@ export default function AdminMembersPage() {
             </tr>
           </thead>
           <tbody>
-            {mockMembers.map((member) => (
+            {members.map((member) => (
               <tr key={member.id} className="border-t border-zinc-100">
                 <td className="px-4 py-4 font-black">{member.name}</td>
                 <td className="px-4 py-4 text-zinc-600">{member.email}</td>
@@ -203,6 +209,13 @@ export default function AdminMembersPage() {
                 </td>
               </tr>
             ))}
+            {members.length === 0 ? (
+              <tr>
+                <td className="px-4 py-6 text-center font-bold text-zinc-500" colSpan={6}>
+                  아직 등록된 회원이 없습니다.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </section>

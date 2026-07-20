@@ -2,6 +2,7 @@ import { inquiryItems } from "@/content/seed/site-data";
 import type { InquiryItem, InquiryStatus, InquiryType } from "@/lib/types/inquiry";
 import type { InquiryActionInput } from "@/lib/validation/inquiry-action";
 import type { InquiryInput } from "@/lib/validation/inquiry";
+import { ensureGeneralMember } from "@/lib/repositories/members";
 import {
   createSupabaseAdminClient,
   getMissingSupabaseAdminEnv,
@@ -12,6 +13,8 @@ type PersistInquiryResult = {
   mode: "supabase" | "mock";
   missingEnv?: string[];
   inquiryId?: string;
+  memberId?: string;
+  memberCreated?: boolean;
 };
 
 type PersistInquiryActionResult = {
@@ -31,12 +34,20 @@ export async function persistInquiry(
   }
 
   const supabase = createSupabaseAdminClient();
+  const memberResult =
+    input.type === "membership"
+      ? await ensureGeneralMember({
+          name: input.name,
+          email: input.email,
+        })
+      : null;
+
   const { data, error } = await supabase
     .from("inquiry_entries")
     .insert({
       inquiry_type: input.type,
       name: input.name,
-      email: input.email,
+      email: input.email.toLowerCase(),
       phone: input.phone,
       riding_experience: input.ridingExperience,
       requested_member_type: input.requestedMemberType,
@@ -50,9 +61,34 @@ export async function persistInquiry(
     throw new Error(error.message);
   }
 
+  const requestedUpgrade =
+    input.type === "membership" &&
+    input.requestedMemberType &&
+    input.requestedMemberType !== "일반회원";
+
+  if (requestedUpgrade && memberResult?.member) {
+    const { error: reviewError } = await supabase.from("review_queue_items").insert({
+      subject_kind: "member-upgrade",
+      member_id: memberResult.member.id,
+      inquiry_id: data.id,
+      title: `${input.requestedMemberType} 전환 요청 · ${input.name}`,
+      status: "review",
+      risk: "low",
+      required_author_role: "general",
+      required_publish_role: "admin",
+      submitted_by: memberResult.member.id,
+    });
+
+    if (reviewError) {
+      throw new Error(reviewError.message);
+    }
+  }
+
   return {
     mode: "supabase",
     inquiryId: data.id as string,
+    memberId: memberResult?.member?.id,
+    memberCreated: memberResult?.created,
   };
 }
 
