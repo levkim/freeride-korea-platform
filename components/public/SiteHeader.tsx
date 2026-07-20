@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { MobileMenu } from "@/components/public/MobileMenu";
@@ -36,14 +35,12 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/90 shadow-[0_12px_40px_-35px_rgba(11,13,16,0.6)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-4 py-3 md:px-5">
         <Link href="/" className="flex min-w-0 items-center gap-3">
-          <Image
-            src="/brand/logo-header.png"
+          <img
+            src="/brand/logo-mark.svg"
             alt="FREERIDE KOREA"
-            width={154}
-            height={64}
-            priority
-            className="object-contain"
-            style={{ width: "auto", height: "auto" }}
+            width="56"
+            height="56"
+            className="h-14 w-14 shrink-0 object-contain"
           />
           <span className="hidden shrink-0 sm:block">
             <span className="block text-2xl font-black leading-[1.0] tracking-normal">
