@@ -166,7 +166,7 @@ export function EventDraftForm({ action }: EventDraftFormProps) {
   }
 
   return (
-    <form action={action} className="grid gap-8">
+    <form action={action} encType="multipart/form-data" className="grid gap-8">
       <section className="grid gap-5 border border-zinc-200 bg-white p-5 lg:grid-cols-2">
         <SectionIntro
           eyebrow="기본 정보"

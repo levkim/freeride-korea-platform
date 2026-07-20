@@ -9,6 +9,7 @@ import {
 } from "@/lib/authz/server";
 import {
   hideMemberBoardPost,
+  getMemberEditableCategoryContentById,
   persistMemberBoardPost,
   updateMemberBoardPost,
 } from "@/lib/repositories/category-content";
@@ -16,6 +17,7 @@ import {
   persistMemberComment,
   reportMemberComment,
 } from "@/lib/repositories/comments";
+import { applyUploadedContentImage } from "@/lib/storage/content-images";
 
 const boardKindSchema = z.enum(["culture", "marketplace", "resource"]);
 
@@ -66,8 +68,23 @@ export async function createMemberBoardPostAction(formData: FormData) {
       parsed.data.kind,
       parsed.data.subtype,
     );
+    await applyUploadedContentImage(formData, "member-board");
   } catch {
     redirect("/account?auth=signin-required");
+  }
+
+  const parsedWithImage = memberBoardPostSchema.safeParse({
+    kind: formData.get("kind"),
+    subtype: formData.get("subtype"),
+    title: formData.get("title"),
+    summary: formData.get("summary"),
+    body: formData.get("body"),
+    imageUrl: formData.get("imageUrl"),
+    relatedLink: formData.get("relatedLink"),
+  });
+
+  if (!parsedWithImage.success) {
+    redirect("/culture/new?result=invalid");
   }
 
   let nextPath = "/culture/new?result=error";
@@ -75,7 +92,7 @@ export async function createMemberBoardPostAction(formData: FormData) {
   try {
     const result = await persistMemberBoardPost({
       authorId: signedInMember.member.id,
-      ...parsed.data,
+      ...parsedWithImage.data,
     });
 
     nextPath = result.contentId
@@ -113,28 +130,49 @@ export async function updateMemberBoardPostAction(formData: FormData) {
       parsed.data.kind,
       parsed.data.subtype,
     );
+    const currentItem = await getMemberEditableCategoryContentById(parsed.data.id);
+    await applyUploadedContentImage(
+      formData,
+      "member-board",
+      currentItem?.imageUrl,
+    );
   } catch {
     redirect("/account?auth=signin-required");
   }
 
-  let nextPath = `/culture/${parsed.data.id}/edit?result=error`;
+  const parsedWithImage = memberBoardPostSchema.safeParse({
+    id: formData.get("id"),
+    kind: formData.get("kind"),
+    subtype: formData.get("subtype"),
+    title: formData.get("title"),
+    summary: formData.get("summary"),
+    body: formData.get("body"),
+    imageUrl: formData.get("imageUrl"),
+    relatedLink: formData.get("relatedLink"),
+  });
+
+  if (!parsedWithImage.success || !parsedWithImage.data.id) {
+    redirect("/culture?result=invalid");
+  }
+
+  let nextPath = `/culture/${parsedWithImage.data.id}/edit?result=error`;
 
   try {
     await updateMemberBoardPost({
-      id: parsed.data.id,
+      id: parsedWithImage.data.id,
       authorId: signedInMember.member.id,
-      kind: parsed.data.kind,
-      subtype: parsed.data.subtype,
-      title: parsed.data.title,
-      summary: parsed.data.summary,
-      body: parsed.data.body,
-      imageUrl: parsed.data.imageUrl,
-      relatedLink: parsed.data.relatedLink,
+      kind: parsedWithImage.data.kind,
+      subtype: parsedWithImage.data.subtype,
+      title: parsedWithImage.data.title,
+      summary: parsedWithImage.data.summary,
+      body: parsedWithImage.data.body,
+      imageUrl: parsedWithImage.data.imageUrl,
+      relatedLink: parsedWithImage.data.relatedLink,
     });
 
-    nextPath = `/culture/${parsed.data.id}?result=updated`;
+    nextPath = `/culture/${parsedWithImage.data.id}?result=updated`;
   } catch {
-    nextPath = `/culture/${parsed.data.id}/edit?result=error`;
+    nextPath = `/culture/${parsedWithImage.data.id}/edit?result=error`;
   }
 
   redirect(nextPath);

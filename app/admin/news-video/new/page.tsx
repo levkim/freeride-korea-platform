@@ -92,6 +92,7 @@ export default async function AdminNewsVideoNewPage({
 
       <form
         action={submitNewsVideoDraft}
+        encType="multipart/form-data"
         className="mt-8 grid gap-8"
       >
         <section className="grid gap-5 border border-zinc-200 bg-white p-5 shadow-[var(--shadow-diffused)]">

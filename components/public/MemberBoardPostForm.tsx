@@ -3,6 +3,7 @@ import {
   hideMemberBoardPostAction,
   updateMemberBoardPostAction,
 } from "@/app/culture/actions";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import type { CategoryContentItem } from "@/lib/types/content";
 
 const inputClass =
@@ -39,6 +40,7 @@ export function MemberBoardPostForm({
     <section className="mx-auto max-w-5xl px-5 py-14">
       <form
         action={isEdit ? updateMemberBoardPostAction : createMemberBoardPostAction}
+        encType="multipart/form-data"
         className="border border-zinc-200 bg-white p-6 shadow-[var(--shadow-diffused)]"
       >
         {isEdit ? <input type="hidden" name="id" value={item.id} /> : null}
@@ -121,15 +123,12 @@ export function MemberBoardPostForm({
               className={textareaClass}
             />
           </label>
-          <label className="grid gap-2 text-sm font-bold">
-            대표 이미지 URL
-            <input
-              name="imageUrl"
+          <div className="md:col-span-2">
+            <ImageUploadField
               defaultValue={item?.imageUrl ?? ""}
               placeholder="/brand/hero-training.png"
-              className={inputClass}
             />
-          </label>
+          </div>
           <label className="grid gap-2 text-sm font-bold">
             관련 링크
             <input

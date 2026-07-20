@@ -310,7 +310,7 @@ export function CategoryDraftForm({
   }
 
   return (
-    <form action={action} className="grid gap-8">
+    <form action={action} encType="multipart/form-data" className="grid gap-8">
       <input type="hidden" name="kind" value={draft.kind} />
       <section className="grid gap-5 border border-zinc-200 bg-white p-5 lg:grid-cols-[0.8fr_1.2fr]">
         <div>

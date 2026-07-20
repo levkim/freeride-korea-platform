@@ -6,11 +6,13 @@ import { useEffect, useMemo, useState } from "react";
 type ImageUploadFieldProps = {
   label?: string;
   name?: string;
+  fileName?: string;
   value?: string;
   defaultValue?: string;
   required?: boolean;
   placeholder?: string;
   bucketPath?: string;
+  allowRemove?: boolean;
   onChange?: (value: string) => void;
 };
 
@@ -18,7 +20,8 @@ function slugFileName(fileName: string) {
   const [name = "image", extension = "jpg"] = fileName.split(/\.(?=[^.]+$)/);
   const slug = name
     .toLowerCase()
-    .replace(/[^a-z0-9가-힣]+/g, "-")
+    .normalize("NFKD")
+    .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
   return `${slug || "image"}-${Date.now()}.${extension.toLowerCase()}`;
@@ -27,11 +30,13 @@ function slugFileName(fileName: string) {
 export function ImageUploadField({
   label = "대표 이미지",
   name = "imageUrl",
+  fileName = "imageFile",
   value,
   defaultValue = "",
   required,
   placeholder = "/brand/hero-training.png",
   bucketPath = "/storage/content-images",
+  allowRemove = true,
   onChange,
 }: ImageUploadFieldProps) {
   const controlled = value !== undefined;
@@ -85,8 +90,8 @@ export function ImageUploadField({
       <div>
         <p className="text-xs font-black uppercase text-zinc-500">{label}</p>
         <p className="mt-1 text-xs font-bold leading-5 text-zinc-500">
-          현재 v1은 파일 선택, 미리보기, 저장 경로 입력까지 지원합니다. 실제
-          Supabase Storage 업로드는 DB 연결 후 활성화합니다.
+          JPG, PNG, WEBP, GIF 파일을 업로드할 수 있습니다. 파일을 선택하면
+          저장 시 Supabase Storage에 업로드되고 대표 이미지 URL로 반영됩니다.
         </p>
       </div>
 
@@ -113,7 +118,8 @@ export function ImageUploadField({
             </span>
             <input
               type="file"
-              accept="image/*"
+              name={fileName}
+              accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={handleFileChange}
               className="border border-zinc-300 bg-white px-3 py-2 text-sm font-bold text-zinc-900 file:mr-3 file:border-0 file:bg-zinc-200 file:px-3 file:py-2 file:text-xs file:font-black"
             />
@@ -132,8 +138,16 @@ export function ImageUploadField({
               className="h-11 border border-zinc-300 bg-white px-3 text-sm font-bold text-zinc-900 outline-none transition-colors focus:border-[var(--color-fk-red)]"
             />
           </label>
+
+          {allowRemove && imageUrl ? (
+            <label className="flex items-center gap-2 text-xs font-black text-zinc-600">
+              <input type="checkbox" name="removeImage" />
+              대표 이미지 삭제
+            </label>
+          ) : null}
         </div>
       </div>
     </div>
   );
 }
+
