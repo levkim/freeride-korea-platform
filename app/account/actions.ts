@@ -1,6 +1,14 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
+import { ensureGeneralMember } from "@/lib/repositories/members";
 import { lookupMemberStatus } from "@/lib/repositories/member-status";
+import { createSupabaseAuthServerClient } from "@/lib/supabase/auth";
+import {
+  memberSignInSchema,
+  memberSignUpSchema,
+} from "@/lib/validation/member-auth";
 import { memberStatusLookupSchema } from "@/lib/validation/member-status";
 
 export type MemberStatusLookupState = {
@@ -47,4 +55,87 @@ export async function lookupMemberStatusAction(
         "회원 상태를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     };
   }
+}
+
+export async function signUpMemberAction(formData: FormData) {
+  const parsed = memberSignUpSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    passwordConfirm: formData.get("passwordConfirm"),
+  });
+
+  if (!parsed.success) {
+    redirect("/account?auth=signup-invalid");
+  }
+
+  let nextPath = "/account?auth=signup-error";
+
+  try {
+    const supabase = await createSupabaseAuthServerClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: parsed.data.email.toLowerCase(),
+      password: parsed.data.password,
+      options: {
+        data: {
+          name: parsed.data.name,
+        },
+      },
+    });
+
+    if (!error) {
+      await ensureGeneralMember({
+        name: parsed.data.name,
+        email: parsed.data.email,
+      });
+
+      nextPath = data.session
+        ? "/account?auth=signed-up"
+        : "/account?auth=signup-check-email";
+    }
+  } catch {
+    nextPath = "/account?auth=auth-not-configured";
+  }
+
+  redirect(nextPath);
+}
+
+export async function signInMemberAction(formData: FormData) {
+  const parsed = memberSignInSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+
+  if (!parsed.success) {
+    redirect("/account?auth=signin-invalid");
+  }
+
+  let nextPath = "/account?auth=signin-error";
+
+  try {
+    const supabase = await createSupabaseAuthServerClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: parsed.data.email.toLowerCase(),
+      password: parsed.data.password,
+    });
+
+    if (!error) {
+      nextPath = "/account?auth=signed-in";
+    }
+  } catch {
+    nextPath = "/account?auth=auth-not-configured";
+  }
+
+  redirect(nextPath);
+}
+
+export async function signOutMemberAction() {
+  try {
+    const supabase = await createSupabaseAuthServerClient();
+    await supabase.auth.signOut();
+  } catch {
+    // Missing auth env should still land the visitor on the account page.
+  }
+
+  redirect("/account?auth=signed-out");
 }

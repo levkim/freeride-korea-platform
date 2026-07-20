@@ -2,6 +2,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { Badge } from "@/components/ui/Badge";
 import { getSiteUrl } from "@/lib/site-url";
 import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
+import { getMissingSupabaseAuthEnv } from "@/lib/supabase/auth";
 
 const githubActionsUrl =
   "https://github.com/levkim/freeride-korea-platform/actions/workflows/ci.yml";
@@ -68,6 +69,7 @@ function getEnvironmentItems(): EnvironmentItem[] {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
   const adminAccessKey = process.env.ADMIN_ACCESS_KEY || "";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
   const storageBucket =
     process.env.SUPABASE_STORAGE_CONTENT_BUCKET || "content-images";
@@ -99,6 +101,15 @@ function getEnvironmentItems(): EnvironmentItem[] {
       displayValue: supabaseUrl || "미설정",
     },
     {
+      key: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      purpose:
+        "회원가입, 로그인, 세션 확인에 사용하는 Supabase Auth 브라우저용 공개 키",
+      source: "Supabase Project Settings > API > anon public key",
+      required: true,
+      isConfigured: Boolean(supabaseAnonKey),
+      displayValue: supabaseAnonKey ? "설정됨" : "미설정",
+    },
+    {
       key: "SUPABASE_SERVICE_ROLE_KEY",
       purpose: "서버 액션에서 문의, 게시물, 검토 기록을 저장하는 service role key",
       source: "Supabase Project Settings > API",
@@ -119,6 +130,7 @@ function getEnvironmentItems(): EnvironmentItem[] {
 
 function getDeploymentChecklist(): ChecklistItem[] {
   const supabaseStatus = getSupabaseAdminStatus();
+  const missingAuthEnv = getMissingSupabaseAuthEnv();
   const siteUrl = getSiteUrl();
   const hasSiteUrl = Boolean(process.env.NEXT_PUBLIC_SITE_URL);
   const hasAdminAccessKey = Boolean(process.env.ADMIN_ACCESS_KEY);
@@ -153,6 +165,16 @@ function getDeploymentChecklist(): ChecklistItem[] {
       status: supabaseStatus.isConfigured
         ? "Supabase 모드"
         : `Mock 모드: ${supabaseStatus.missingEnv.join(", ")}`,
+    },
+    {
+      title: "회원 로그인 Auth",
+      description:
+        "회원가입과 로그인은 Supabase Auth를 사용합니다. NEXT_PUBLIC_SUPABASE_ANON_KEY가 설정되어야 /account에서 실제 회원 세션이 작동합니다.",
+      ready: missingAuthEnv.length === 0,
+      status:
+        missingAuthEnv.length === 0
+          ? "Supabase Auth 준비됨"
+          : `설정 필요: ${missingAuthEnv.join(", ")}`,
     },
     {
       title: "Supabase RLS",
@@ -194,7 +216,7 @@ const qaCommands = [
   [
     "운영 환경변수 점검",
     "npm.cmd run qa:deploy-env",
-    "운영 도메인, 관리자 접근 키, Supabase URL, service role key 설정 여부를 확인합니다.",
+    "운영 도메인, 관리자 접근 키, Supabase URL, anon key, service role key 설정 여부를 확인합니다.",
   ],
   [
     "회원가입 저장 흐름",

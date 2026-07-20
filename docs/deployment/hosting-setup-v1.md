@@ -24,6 +24,7 @@ Health check path: /healthz
 NEXT_PUBLIC_SITE_URL=https://www.freeride.kr
 ADMIN_ACCESS_KEY=<16+ character temporary admin key>
 NEXT_PUBLIC_SUPABASE_URL=<Supabase project URL>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<Supabase anon public key>
 SUPABASE_SERVICE_ROLE_KEY=<Supabase service role key>
 SUPABASE_STORAGE_CONTENT_BUCKET=content-images
 ```
@@ -50,3 +51,4 @@ curl https://www.freeride.kr/healthz
 - Confirm `/admin/deployment` after environment variables are set.
 - Confirm `/admin/data-setup` after Supabase schema, RLS, and Storage are configured.
 - Do not expose `SUPABASE_SERVICE_ROLE_KEY` in browser code or public logs.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` is the public browser key used by Supabase Auth.

@@ -63,6 +63,14 @@ const checks = [
     },
   },
   {
+    key: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    required: true,
+    validate(value) {
+      if (!value) return "missing";
+      return value.length >= 32 ? "ok" : "too-short";
+    },
+  },
+  {
     key: "SUPABASE_SERVICE_ROLE_KEY",
     required: true,
     validate(value) {

@@ -1,8 +1,10 @@
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { SiteHeader } from "@/components/public/SiteHeader";
+import { MemberAuthPanel } from "@/components/public/MemberAuthPanel";
 import { MemberStatusLookup } from "@/components/public/MemberStatusLookup";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { getCurrentMemberSession } from "@/lib/repositories/member-auth";
 
 const memberSteps = [
   {
@@ -32,7 +34,18 @@ const portalModules = [
   ["알림", "관리자 승인, 보완 요청, 결제/회비 안내, 안전 공지를 확인합니다."],
 ];
 
-export default function AccountPage() {
+type AccountPageProps = {
+  searchParams?: Promise<{
+    auth?: string;
+  }>;
+};
+
+export const dynamic = "force-dynamic";
+
+export default async function AccountPage({ searchParams }: AccountPageProps) {
+  const params = await searchParams;
+  const session = await getCurrentMemberSession();
+
   return (
     <>
       <SiteHeader />
@@ -47,20 +60,20 @@ export default function AccountPage() {
                 My FREERIDE KOREA
               </h1>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-600">
-                회원가입은 지금 바로 접수할 수 있고, 모든 가입은 일반회원으로
-                시작합니다. 정회원, 선수회원, 스폰서십 회원 전환은 운영진 검토
-                후 진행됩니다.
+                회원가입은 이메일 계정으로 시작하고, 모든 신규 가입은
+                일반회원으로 등록됩니다. 정회원, 선수회원, 스폰서십 회원 전환은
+                운영진 검토 후 진행됩니다.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button
-                  href="/contact-join"
+                  href="#member-auth"
                   variant="secondary"
                   className="border-zinc-300 bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
                 >
-                  회원가입 / 등급 전환
+                  로그인 / 회원가입
                 </Button>
                 <Button href="/contact-join" variant="secondary">
-                  문의하기
+                  등급 전환 문의
                 </Button>
               </div>
             </div>
@@ -70,9 +83,13 @@ export default function AccountPage() {
                   <p className="text-sm font-black text-zinc-500">
                     현재 운영 상태
                   </p>
-                  <h2 className="mt-2 text-2xl font-black">회원가입 v1 연결 완료</h2>
+                  <h2 className="mt-2 text-2xl font-black">
+                    회원 로그인 v1 연결
+                  </h2>
                 </div>
-                <Badge tone="green">Supabase 저장</Badge>
+                <Badge tone={session.missingEnv.length ? "amber" : "green"}>
+                  {session.missingEnv.length ? "Auth 설정 필요" : "Supabase Auth"}
+                </Badge>
               </div>
               <div className="grid gap-3 md:grid-cols-3">
                 {memberSteps.map((step) => (
@@ -90,6 +107,15 @@ export default function AccountPage() {
             </div>
           </div>
         </section>
+
+        <div id="member-auth">
+          <MemberAuthPanel
+            authStatus={params?.auth}
+            missingEnv={session.missingEnv}
+            member={session.member}
+            email={session.user?.email}
+          />
+        </div>
 
         <section className="mx-auto max-w-7xl px-5 py-14">
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -118,9 +144,9 @@ export default function AccountPage() {
               <h2 className="mt-3 text-3xl font-black">로그인 / 마이페이지 v2</h2>
             </div>
             <div className="grid gap-3 text-sm font-bold leading-7 text-zinc-700 md:grid-cols-2">
-              <p>이메일 인증 또는 Supabase Auth 기반 로그인</p>
-              <p>회원 본인 신청 내역 조회</p>
+              <p>회원 본인 신청 내역 상세 조회</p>
               <p>댓글, 중고장터, 컬쳐 게시글 작성 이력</p>
+              <p>회원 등급별 작성 가능 메뉴 자동 표시</p>
               <p>정회원 회비, 선수회원 자격, 스폰서십 상태 관리</p>
             </div>
           </div>

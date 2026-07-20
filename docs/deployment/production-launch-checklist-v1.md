@@ -73,6 +73,7 @@ Set these in the hosting platform:
 NEXT_PUBLIC_SITE_URL=https://www.freeride.kr
 ADMIN_ACCESS_KEY=<16+ character temporary admin key>
 NEXT_PUBLIC_SUPABASE_URL=<Supabase project URL>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<Supabase anon public key>
 SUPABASE_SERVICE_ROLE_KEY=<Supabase service role key>
 SUPABASE_STORAGE_CONTENT_BUCKET=content-images
 ```
@@ -88,7 +89,7 @@ Expected result:
 - [ ] required variables pass
 - [ ] production URL is not localhost
 - [ ] admin access key is set
-- [ ] Supabase URL and service role key are set
+- [ ] Supabase URL, anon public key, and service role key are set
 
 ## 6. Post Deploy
 
@@ -126,4 +127,5 @@ Launch only when:
 - [ ] `npm run qa:preflight` passes locally.
 - [ ] Hosting environment variables are configured.
 - [ ] Supabase schema, RLS, seed data, and Storage are configured.
+- [ ] Supabase Auth email/password signup is enabled for member login.
 - [ ] Post-deploy smoke QA passes on the real domain.
