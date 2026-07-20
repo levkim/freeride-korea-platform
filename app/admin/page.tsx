@@ -1,22 +1,80 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Badge } from "@/components/ui/Badge";
-import { mockMembers } from "@/content/seed/site-data";
+import { Button } from "@/components/ui/Button";
+import {
+  listAdminComments,
+  listCommentThreadSummaries,
+} from "@/lib/repositories/comments";
+import { listInquiries } from "@/lib/repositories/inquiries";
+import { listMembers } from "@/lib/repositories/members";
 import { listReviewQueueItems } from "@/lib/repositories/review-queue";
 import { getSupabaseAdminStatus } from "@/lib/supabase/admin";
 
+function getUrgencyTone(count: number) {
+  if (count > 0) {
+    return "amber" as const;
+  }
+
+  return "green" as const;
+}
+
 export default async function AdminPage() {
-  const reviewQueueItems = await listReviewQueueItems();
+  const [reviewQueueItems, membersResult, inquiriesResult] = await Promise.all([
+    listReviewQueueItems(),
+    listMembers(),
+    listInquiries(),
+  ]);
+  const comments = listAdminComments();
+  const commentThreads = listCommentThreadSummaries();
   const supabaseStatus = getSupabaseAdminStatus();
-  const pendingMembers = mockMembers.filter(
+  const reviewNeededCount = reviewQueueItems.filter((item) =>
+    ["new", "reviewing", "review", "needs_revision"].includes(item.status),
+  ).length;
+  const memberUpgradeCount = reviewQueueItems.filter(
+    (item) =>
+      item.kind === "member-upgrade" &&
+      ["new", "reviewing", "review"].includes(item.status),
+  ).length;
+  const pendingMembers = membersResult.items.filter(
     (member) => member.status === "reviewing",
+  ).length;
+  const openInquiryCount = inquiriesResult.items.filter(
+    (item) => item.status !== "closed",
+  ).length;
+  const reportedCommentCount = comments.filter(
+    (comment) => comment.status === "reported",
   ).length;
 
   const dashboardCards = [
-    ["검토 대기", reviewQueueItems.length, "reviewing"],
-    ["승인 대기 회원", pendingMembers, "new"],
-    ["소스 알림", 1, "medium"],
-    ["AI 초안", 0, "draft"],
+    {
+      title: "검토 필요",
+      count: reviewNeededCount,
+      status: "reviewing",
+      href: "/admin/review-queue",
+      note: "콘텐츠, 회원 전환, 소스 알림",
+    },
+    {
+      title: "회원 전환",
+      count: memberUpgradeCount,
+      status: "new",
+      href: "/admin/review-queue?type=member-upgrade",
+      note: `승인 대기 회원 ${pendingMembers}명`,
+    },
+    {
+      title: "미처리 문의",
+      count: openInquiryCount,
+      status: "medium",
+      href: "/admin/contact-join",
+      note: "회원가입, 투어, 교육, 스폰서십",
+    },
+    {
+      title: "신고 댓글",
+      count: reportedCommentCount,
+      status: "reported",
+      href: "/admin/comments?status=reported",
+      note: `댓글 스레드 ${commentThreads.length}개`,
+    },
   ];
 
   return (
@@ -34,15 +92,90 @@ export default async function AdminPage() {
         </div>
       </div>
       <section className="mt-8 grid gap-5 md:grid-cols-4">
-        {dashboardCards.map(([title, count, status]) => (
-          <article key={title} className="border border-zinc-200 bg-white p-5">
-            <p className="text-sm font-bold text-zinc-500">{title}</p>
-            <p className="mt-3 text-4xl font-black">{count}</p>
-            <div className="mt-4">
-              <StatusBadge status={String(status)} />
+        {dashboardCards.map((card) => (
+          <article key={card.title} className="border border-zinc-200 bg-white p-5">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-sm font-bold text-zinc-500">{card.title}</p>
+              <Badge tone={getUrgencyTone(card.count)}>
+                {card.count > 0 ? "처리 필요" : "정상"}
+              </Badge>
+            </div>
+            <p className="mt-3 text-4xl font-black">{card.count}</p>
+            <p className="mt-3 min-h-10 text-sm font-bold leading-5 text-zinc-600">
+              {card.note}
+            </p>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <StatusBadge status={card.status} />
+              <Button
+                href={card.href}
+                variant="secondary"
+                className="h-9 bg-zinc-100 px-3 text-xs text-zinc-950 hover:bg-zinc-200"
+              >
+                바로가기
+              </Button>
             </div>
           </article>
         ))}
+      </section>
+
+      <section className="mt-8 grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
+        <article className="border border-zinc-200 bg-white p-5">
+          <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
+            오늘의 운영 순서
+          </p>
+          <div className="mt-5 grid gap-3">
+            {[
+              ["1", "회원 전환 요청을 먼저 확인하고 승인 또는 반려합니다."],
+              ["2", "회원가입, 투어, 교육, 스폰서십 문의를 담당자 기준으로 분류합니다."],
+              ["3", "뉴스, 이벤트, 카테고리 콘텐츠 검토 항목을 게시 여부에 따라 처리합니다."],
+              ["4", "신고 댓글과 중고장터 관련 댓글을 확인해 숨김 또는 공개 상태를 정리합니다."],
+            ].map(([step, text]) => (
+              <div
+                key={step}
+                className="grid grid-cols-[36px_1fr] gap-3 border border-zinc-200 bg-zinc-50 p-3"
+              >
+                <span className="flex h-9 w-9 items-center justify-center bg-zinc-950 text-sm font-black text-white">
+                  {step}
+                </span>
+                <p className="text-sm font-bold leading-6 text-zinc-700">
+                  {text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="border border-zinc-200 bg-white p-5">
+          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+            <div>
+              <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
+                운영 데이터 요약
+              </p>
+              <h2 className="mt-3 text-2xl font-black">실제 저장소 기준</h2>
+            </div>
+            <Badge tone={supabaseStatus.isConfigured ? "green" : "amber"}>
+              {supabaseStatus.isConfigured ? "Supabase" : "Mock"}
+            </Badge>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {[
+              ["회원", membersResult.items.length, membersResult.mode],
+              ["문의", inquiriesResult.items.length, inquiriesResult.mode],
+              ["검토", reviewQueueItems.length, "review queue"],
+              ["댓글", comments.length, "mock v1"],
+              ["댓글 스레드", commentThreads.length, "thread"],
+              ["신고", reportedCommentCount, "reported"],
+            ].map(([label, value, mode]) => (
+              <div key={label} className="border border-zinc-200 bg-zinc-50 p-4">
+                <p className="text-xs font-black uppercase text-zinc-500">
+                  {label}
+                </p>
+                <p className="mt-2 text-2xl font-black">{value}</p>
+                <p className="mt-1 text-xs font-bold text-zinc-500">{mode}</p>
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
 
       <section className="mt-8 border border-zinc-200 bg-white p-5 shadow-[var(--shadow-diffused)]">
