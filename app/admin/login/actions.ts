@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const adminCookieName = "fk_admin_access";
+import { adminCookieName, getAdminAccessToken } from "@/lib/admin/access-key";
 
 function getSafeReturnPath(value: FormDataEntryValue | null) {
   if (typeof value !== "string" || !value.startsWith("/admin")) {
@@ -31,7 +31,7 @@ export async function verifyAdminAccess(formData: FormData) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set(adminCookieName, configuredKey, {
+  cookieStore.set(adminCookieName, await getAdminAccessToken(configuredKey), {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",

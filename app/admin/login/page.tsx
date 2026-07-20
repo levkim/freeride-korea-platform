@@ -40,7 +40,13 @@ export default async function AdminLoginPage({
         <p className="mt-5 text-sm font-bold leading-6 text-zinc-600">
           Supabase Auth를 붙이기 전까지 사용하는 임시 관리자 보호 화면입니다.
           운영 배포 전에는 `ADMIN_ACCESS_KEY` 환경변수를 설정해 관리자 화면을
-          외부에 열어두지 않도록 합니다.
+          외부에 열어두지 않도록 합니다. 접근 키 원문은 쿠키에 저장하지 않고,
+          해시 토큰으로만 세션을 확인합니다.
+        </p>
+
+        <p className="mt-3 border border-zinc-200 bg-zinc-50 p-3 text-xs font-bold leading-5 text-zinc-600">
+          키를 교체할 때는 Sites 환경변수의 `ADMIN_ACCESS_KEY`를 새 값으로 저장한 뒤
+          다시 배포하면 기존 관리자 세션이 자동으로 무효화됩니다.
         </p>
 
         {params.error === "invalid" ? (

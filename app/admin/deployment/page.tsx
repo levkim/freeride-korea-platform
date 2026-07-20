@@ -83,8 +83,9 @@ function getEnvironmentItems(): EnvironmentItem[] {
     },
     {
       key: "ADMIN_ACCESS_KEY",
-      purpose: "Supabase Auth 전까지 관리자 화면을 보호하는 임시 접근 키",
-      source: "운영자가 직접 정하는 16자 이상 비밀값",
+      purpose:
+        "Supabase Auth 전까지 관리자 화면을 보호하는 임시 접근 키. 쿠키에는 원문 대신 해시 토큰만 저장합니다.",
+      source: "운영자가 직접 정하는 16자 이상 비밀값. secret 환경변수로 저장하고 교체 시 재배포합니다.",
       required: true,
       isConfigured: Boolean(adminAccessKey),
       displayValue: adminAccessKey ? "설정됨" : "미설정",
@@ -140,7 +141,7 @@ function getDeploymentChecklist(): ChecklistItem[] {
     {
       title: "관리자 접근 보호",
       description:
-        "운영 배포 전 ADMIN_ACCESS_KEY를 설정해 /admin 화면이 외부에 그대로 열리지 않도록 합니다.",
+        "운영 배포 전 ADMIN_ACCESS_KEY를 설정해 /admin 화면이 외부에 그대로 열리지 않도록 합니다. 브라우저에는 접근 키 원문이 아니라 해시 토큰만 저장됩니다.",
       ready: hasAdminAccessKey,
       status: hasAdminAccessKey ? "설정됨" : "설정 필요",
     },

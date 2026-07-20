@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const adminCookieName = "fk_admin_access";
+import { adminCookieName, verifyAdminAccessToken } from "@/lib/admin/access-key";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const adminAccessKey = process.env.ADMIN_ACCESS_KEY;
   const { pathname } = request.nextUrl;
 
@@ -14,9 +14,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const grantedKey = request.cookies.get(adminCookieName)?.value;
+  const grantedToken = request.cookies.get(adminCookieName)?.value;
 
-  if (grantedKey === adminAccessKey) {
+  if (await verifyAdminAccessToken(grantedToken, adminAccessKey)) {
     return NextResponse.next();
   }
 

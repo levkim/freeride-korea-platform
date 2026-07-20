@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const adminCookieName = "fk_admin_access";
+import { adminCookieName } from "@/lib/admin/access-key";
 
 export async function signOutAdminAccess() {
   const cookieStore = await cookies();
