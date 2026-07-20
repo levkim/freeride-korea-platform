@@ -19,6 +19,13 @@ type PersistCommentActionResult = {
   action: CommentActionInput["action"];
 };
 
+type PersistMemberCommentInput = {
+  targetType: CommentTargetType;
+  targetId: string;
+  authorId: string;
+  body: string;
+};
+
 type CommentRow = {
   id: string;
   target_type: CommentTargetType;
@@ -193,11 +200,67 @@ async function getContentTitlesById(contentIds: string[]) {
   );
 }
 
-export function listCommentsForTarget(
+export async function listCommentsForTarget(
   targetType: CommentTargetType,
   targetId: string,
 ) {
-  return commentItems
+  if (!hasSupabaseAdminEnv()) {
+    return commentItems
+      .filter(
+        (comment) =>
+          comment.targetType === targetType &&
+          comment.targetId === targetId &&
+          visibleStatuses.includes(comment.status),
+      )
+      .sort((a, b) => {
+        if (a.pinned && !b.pinned) {
+          return -1;
+        }
+
+        if (!a.pinned && b.pinned) {
+          return 1;
+        }
+
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }
+
+  const supabase = createSupabaseAdminClient();
+  let query = supabase
+    .from("comments")
+    .select(
+      "id,target_type,target_content_id,target_event_id,author_id,body,status,report_count,pinned,created_at",
+    )
+    .eq("target_type", targetType)
+    .in("status", visibleStatuses)
+    .order("pinned", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  query =
+    targetType === "event"
+      ? query.eq("target_event_id", targetId)
+      : query.eq("target_content_id", targetId);
+
+  const { data, error } = await query;
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  const rows = data as CommentRow[];
+  const authorIds = Array.from(new Set(rows.map((row) => row.author_id)));
+  const contentIds = Array.from(
+    new Set(
+      rows.map(getCommentTargetId).filter((id): id is string => Boolean(id)),
+    ),
+  );
+  const [memberById, contentTitleById] = await Promise.all([
+    getMembersById(authorIds),
+    getContentTitlesById(contentIds),
+  ]);
+
+  return rows
+    .map((row) => rowToCommentItem(row, memberById, contentTitleById))
     .filter(
       (comment) =>
         comment.targetType === targetType &&
@@ -215,6 +278,88 @@ export function listCommentsForTarget(
 
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+}
+
+export async function persistMemberComment(input: PersistMemberCommentInput) {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock" as const,
+      missingEnv: getMissingSupabaseAdminEnv(),
+    };
+  }
+
+  const payload = {
+    target_type: input.targetType,
+    target_content_id:
+      input.targetType === "event" ? null : input.targetId,
+    target_event_id: input.targetType === "event" ? input.targetId : null,
+    author_id: input.authorId,
+    body: input.body,
+    status: "visible",
+  };
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("comments").insert(payload);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase" as const,
+  };
+}
+
+export async function reportMemberComment(commentId: string) {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock" as const,
+      missingEnv: getMissingSupabaseAdminEnv(),
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data: comment, error: readError } = await supabase
+    .from("comments")
+    .select("id,status,report_count")
+    .eq("id", commentId)
+    .maybeSingle();
+
+  if (readError) {
+    throw new Error(readError.message);
+  }
+
+  if (!comment) {
+    return {
+      mode: "supabase" as const,
+    };
+  }
+
+  const nextReportCount = Number(comment.report_count ?? 0) + 1;
+  const { error: updateError } = await supabase
+    .from("comments")
+    .update({
+      status: "reported",
+      report_count: nextReportCount,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", commentId);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  await supabase.from("comment_events").insert({
+    comment_id: commentId,
+    action: "report",
+    from_status: comment.status,
+    to_status: "reported",
+    note: "회원 댓글 신고",
+  });
+
+  return {
+    mode: "supabase" as const,
+  };
 }
 
 export async function listAdminComments(): Promise<{

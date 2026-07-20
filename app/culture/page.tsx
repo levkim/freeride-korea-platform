@@ -42,6 +42,22 @@ export default function CulturePage() {
           description="좋은 영상과 사진, 산악 윤리, 커뮤니티, 장비 문화까지 함께 쌓아 한국 프리라이드의 언어와 기준을 만듭니다."
         />
 
+        <section className="border-b border-zinc-200 bg-white">
+          <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-5 py-6 md:flex-row md:items-center">
+            <div>
+              <p className="text-sm font-black uppercase text-[var(--color-fk-red)]">
+                Member Board
+              </p>
+              <h2 className="mt-2 text-2xl font-black">
+                로그인 회원은 컬쳐, 중고장터, 자료실 글을 직접 작성할 수 있습니다.
+              </h2>
+            </div>
+            <Button href="/culture/new" variant="secondary">
+              회원 글쓰기
+            </Button>
+          </div>
+        </section>
+
         <section className="mx-auto grid max-w-7xl gap-5 px-5 py-16 md:grid-cols-2">
           {cultureBlocks.map((block) => (
             <article

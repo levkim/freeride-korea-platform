@@ -21,6 +21,21 @@ type PersistCategoryDraftResult = {
   directPublished?: boolean;
 };
 
+type PersistMemberBoardPostInput = {
+  authorId: string;
+  kind: "culture" | "marketplace" | "resource";
+  subtype: string;
+  title: string;
+  summary: string;
+  body: string;
+  imageUrl?: string;
+  relatedLink?: string;
+};
+
+type UpdateMemberBoardPostInput = PersistMemberBoardPostInput & {
+  id: string;
+};
+
 type UpdateCategoryContentStatusResult = {
   mode: "supabase" | "mock";
   missingEnv?: string[];
@@ -41,6 +56,13 @@ type CategoryContentRow = {
   source_url: string | null;
   published_at: string | null;
   metadata: Record<string, unknown> | null;
+};
+
+type CategoryContentOwnerRow = {
+  id: string;
+  author_id: string | null;
+  kind: CategoryContentKind;
+  status: PublishStatus;
 };
 
 const publicStatuses: PublishStatus[] = ["approved", "published"];
@@ -302,6 +324,137 @@ export async function updateCategoryDraft(
   };
 }
 
+export async function persistMemberBoardPost(input: PersistMemberBoardPostInput) {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock" as const,
+      missingEnv: getMissingSupabaseAdminEnv(),
+      contentId: undefined,
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("content_entries")
+    .insert({
+      kind: input.kind,
+      status: "published",
+      title_ko: input.title,
+      title_en: input.title,
+      summary_ko: input.summary,
+      summary_en: input.summary,
+      body_ko: input.body,
+      body_en: input.body,
+      image_url: input.imageUrl || "/brand/hero-training.png",
+      source_url: input.relatedLink || null,
+      published_at: new Date().toISOString(),
+      author_id: input.authorId,
+      metadata: {
+        subtype: input.subtype,
+        cultureFormat: input.subtype,
+        communityScope: "회원 작성",
+        relatedLink: input.relatedLink || null,
+        policyNote:
+          "회원이 직접 작성한 게시물입니다. 신고 또는 운영 기준 위반 시 숨김/보관 처리될 수 있습니다.",
+      },
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase" as const,
+    contentId: data.id as string,
+  };
+}
+
+export async function updateMemberBoardPost(input: UpdateMemberBoardPostInput) {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock" as const,
+      missingEnv: getMissingSupabaseAdminEnv(),
+      contentId: input.id,
+    };
+  }
+
+  const owner = await getMemberBoardPostOwner(input.id);
+
+  if (!owner || owner.author_id !== input.authorId) {
+    throw new Error("게시글 수정 권한이 없습니다.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("content_entries")
+    .update({
+      kind: input.kind,
+      title_ko: input.title,
+      title_en: input.title,
+      summary_ko: input.summary,
+      summary_en: input.summary,
+      body_ko: input.body,
+      body_en: input.body,
+      image_url: input.imageUrl || "/brand/hero-training.png",
+      source_url: input.relatedLink || null,
+      updated_at: new Date().toISOString(),
+      metadata: {
+        subtype: input.subtype,
+        cultureFormat: input.subtype,
+        communityScope: "회원 작성",
+        relatedLink: input.relatedLink || null,
+        policyNote:
+          "회원이 직접 작성한 게시물입니다. 신고 또는 운영 기준 위반 시 숨김/보관 처리될 수 있습니다.",
+      },
+    })
+    .eq("id", input.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase" as const,
+    contentId: input.id,
+  };
+}
+
+export async function hideMemberBoardPost(id: string, authorId: string) {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock" as const,
+      missingEnv: getMissingSupabaseAdminEnv(),
+      contentId: id,
+    };
+  }
+
+  const owner = await getMemberBoardPostOwner(id);
+
+  if (!owner || owner.author_id !== authorId) {
+    throw new Error("게시글 숨김 권한이 없습니다.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("content_entries")
+    .update({
+      status: "hidden",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase" as const,
+    contentId: id,
+  };
+}
+
 export async function updateCategoryContentStatus(
   id: string,
   status: PublishStatus,
@@ -441,6 +594,34 @@ export async function getAdminCategoryContentById(
   }
 
   return rowToCategoryContentItem(data as CategoryContentRow);
+}
+
+export async function getMemberEditableCategoryContentById(
+  id: string,
+): Promise<CategoryContentItem | null> {
+  return getAdminCategoryContentById(id);
+}
+
+export async function getMemberBoardPostOwner(
+  id: string,
+): Promise<CategoryContentOwnerRow | null> {
+  if (!hasSupabaseAdminEnv()) {
+    return null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("content_entries")
+    .select("id,author_id,kind,status")
+    .eq("id", id)
+    .in("kind", ["culture", "marketplace", "resource"])
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as CategoryContentOwnerRow | null;
 }
 
 export async function persistCategoryDraft(

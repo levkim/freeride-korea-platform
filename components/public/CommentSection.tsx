@@ -1,11 +1,17 @@
+import {
+  createMemberCommentAction,
+  reportMemberCommentAction,
+} from "@/app/culture/actions";
 import { Badge } from "@/components/ui/Badge";
 import { listCommentsForTarget } from "@/lib/repositories/comments";
+import { getCurrentMemberSession } from "@/lib/repositories/member-auth";
 import type { CommentTargetType } from "@/lib/types/comment";
 
 type CommentSectionProps = {
   targetType: CommentTargetType;
   targetId: string;
   allowComments?: boolean;
+  returnTo?: string;
 };
 
 const authorTypeLabels = {
@@ -23,12 +29,30 @@ function formatCommentDate(value: string) {
   }).format(new Date(value));
 }
 
-export function CommentSection({
+function getDefaultReturnTo(targetType: CommentTargetType, targetId: string) {
+  if (targetType === "event") {
+    return `/events/${targetId}`;
+  }
+
+  if (targetType === "news-video") {
+    return `/news-video/${targetId}`;
+  }
+
+  return `/culture/${targetId}`;
+}
+
+export async function CommentSection({
   targetType,
   targetId,
   allowComments = true,
+  returnTo,
 }: CommentSectionProps) {
-  const comments = listCommentsForTarget(targetType, targetId);
+  const [comments, session] = await Promise.all([
+    listCommentsForTarget(targetType, targetId),
+    getCurrentMemberSession(),
+  ]);
+  const isSignedIn = Boolean(session.user?.email && session.member?.id);
+  const resolvedReturnTo = returnTo || getDefaultReturnTo(targetType, targetId);
 
   return (
     <section className="border border-zinc-200 bg-white p-6 shadow-[var(--shadow-diffused)]">
@@ -39,8 +63,8 @@ export function CommentSection({
           </p>
           <h2 className="mt-2 text-3xl font-black">회원 의견</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">
-            댓글은 로그인한 회원 이상 작성할 수 있도록 설계합니다. 신고,
-            숨김, 삭제, 관리자 고정 댓글은 관리자 모드에서 관리합니다.
+            댓글은 로그인 회원이 작성할 수 있습니다. 신고된 댓글은 관리자 댓글
+            관리 화면에서 숨김, 삭제, 고정 처리할 수 있습니다.
           </p>
         </div>
         <Badge tone={allowComments ? "green" : "neutral"}>
@@ -48,15 +72,45 @@ export function CommentSection({
         </Badge>
       </div>
 
-      <div className="mt-6 border border-dashed border-zinc-300 bg-zinc-50 p-4">
-        <p className="text-sm font-black text-zinc-900">
-          회원 로그인 연결 후 댓글 작성 폼이 활성화됩니다.
-        </p>
-        <p className="mt-2 text-sm leading-6 text-zinc-600">
-          현재 v1에서는 데이터 모델과 표시 구조를 먼저 준비하고, 실제 작성과
-          저장은 인증/Supabase 연결 단계에서 활성화합니다.
-        </p>
-      </div>
+      {allowComments ? (
+        isSignedIn ? (
+          <form
+            action={createMemberCommentAction}
+            className="mt-6 border border-zinc-200 bg-zinc-50 p-4"
+          >
+            <input type="hidden" name="targetType" value={targetType} />
+            <input type="hidden" name="targetId" value={targetId} />
+            <input type="hidden" name="returnTo" value={resolvedReturnTo} />
+            <label className="grid gap-2 text-sm font-bold">
+              댓글 작성
+              <textarea
+                name="body"
+                rows={4}
+                required
+                className="resize-y border border-zinc-300 bg-white px-3 py-3 text-sm font-bold text-zinc-900 outline-none focus:border-[var(--color-fk-red)]"
+              />
+            </label>
+            <button
+              type="submit"
+              className="mt-3 h-11 border border-zinc-300 bg-zinc-100 px-5 text-sm font-black text-zinc-950 transition-colors hover:bg-zinc-200"
+            >
+              댓글 등록
+            </button>
+          </form>
+        ) : (
+          <div className="mt-6 border border-dashed border-zinc-300 bg-zinc-50 p-4">
+            <p className="text-sm font-black text-zinc-900">
+              댓글은 로그인한 회원만 작성할 수 있습니다.
+            </p>
+            <a
+              href="/account"
+              className="mt-3 inline-flex h-10 items-center border border-zinc-300 bg-zinc-100 px-4 text-sm font-black text-zinc-950 transition-colors hover:bg-zinc-200"
+            >
+              로그인/가입
+            </a>
+          </div>
+        )
+      ) : null}
 
       <div className="mt-6 grid gap-3">
         {comments.length ? (
@@ -80,6 +134,18 @@ export function CommentSection({
               <p className="mt-3 text-sm font-bold leading-7 text-zinc-700">
                 {comment.body}
               </p>
+              {isSignedIn ? (
+                <form action={reportMemberCommentAction} className="mt-3">
+                  <input type="hidden" name="commentId" value={comment.id} />
+                  <input type="hidden" name="returnTo" value={resolvedReturnTo} />
+                  <button
+                    type="submit"
+                    className="text-xs font-black text-zinc-500 underline-offset-4 hover:text-[var(--color-fk-red)] hover:underline"
+                  >
+                    신고
+                  </button>
+                </form>
+              ) : null}
             </article>
           ))
         ) : (

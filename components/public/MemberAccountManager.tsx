@@ -285,9 +285,19 @@ export function MemberAccountManager({
                     <p className="mt-1 line-clamp-2 text-sm font-black">
                       {item.title}
                     </p>
-                    <p className="mt-1 text-xs font-bold text-zinc-500">
-                      {item.createdAt}
-                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      <p className="text-xs font-bold text-zinc-500">
+                        {item.createdAt}
+                      </p>
+                      {["culture", "marketplace", "resource"].includes(item.kind) ? (
+                        <a
+                          href={`/culture/${item.id}/edit`}
+                          className="text-xs font-black text-zinc-700 underline-offset-4 hover:text-[var(--color-fk-red)] hover:underline"
+                        >
+                          수정/숨김
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
                 ))
               ) : (
