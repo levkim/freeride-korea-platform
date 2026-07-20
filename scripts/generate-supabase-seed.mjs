@@ -37,9 +37,10 @@ function getSeedModule() {
     },
   }).outputText;
 
+  const moduleExports = {};
   const context = {
-    exports: {},
-    module: { exports: {} },
+    exports: moduleExports,
+    module: { exports: moduleExports },
     require() {
       throw new Error("The seed file should not require runtime modules.");
     },
@@ -99,7 +100,13 @@ function publishedAtFor(item) {
     return null;
   }
 
-  return item.publishedAt || item.startsAt || "2026-07-20T00:00:00.000Z";
+  for (const candidate of [item.publishedAt, item.startsAt]) {
+    if (candidate && !Number.isNaN(Date.parse(candidate))) {
+      return candidate;
+    }
+  }
+
+  return "2026-07-20T00:00:00.000Z";
 }
 
 function compactMetadata(item, extra = {}) {
