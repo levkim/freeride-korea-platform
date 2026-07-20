@@ -126,8 +126,20 @@ function MemberDescription({ memberType }: { memberType: MemberType }) {
   );
 }
 
-export default async function AdminMembersPage() {
+type AdminMembersPageProps = {
+  searchParams?: Promise<{
+    result?: string;
+    mode?: string;
+  }>;
+};
+
+export default async function AdminMembersPage({
+  searchParams,
+}: AdminMembersPageProps) {
   const { items: members, mode } = await listMembers();
+  const resolvedSearchParams = await searchParams;
+  const result = resolvedSearchParams?.result;
+  const actionMode = resolvedSearchParams?.mode;
 
   return (
     <AdminShell>
@@ -152,6 +164,21 @@ export default async function AdminMembersPage() {
       </div>
 
       <section className="mt-6 grid gap-3">
+        {result === "updated" ? (
+          <div className="border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900">
+            회원 등급과 상태가 저장되었습니다.
+            {actionMode === "mock" ? (
+              <span className="mt-1 block">
+                현재 Mock 모드라 실제 DB에는 저장되지 않았습니다.
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+        {result === "invalid" ? (
+          <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-900">
+            회원 등급 또는 상태 값이 올바르지 않습니다. 다시 확인해 주세요.
+          </div>
+        ) : null}
         <div className="border border-zinc-200 bg-white p-4">
           <p className="text-sm font-black text-zinc-900">
             회원 등급과 상태는 이 화면에서 바로 수정합니다.
