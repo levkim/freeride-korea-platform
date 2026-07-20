@@ -346,8 +346,16 @@ export default async function AdminCommentsPage({
             </tbody>
           </table>
           {!filteredComments.length ? (
-            <div className="border-b border-zinc-100 py-8 text-center text-sm font-bold text-zinc-500">
-              선택한 조건에 해당하는 댓글이 없습니다.
+            <div className="border-b border-zinc-100 bg-zinc-50 px-4 py-8 text-center">
+              <p className="text-sm font-black text-zinc-800">
+                선택한 조건에 해당하는 댓글이 없습니다.
+              </p>
+              <p className="mx-auto mt-2 max-w-2xl text-sm font-bold leading-6 text-zinc-500">
+                현재 저장소는 {commentsMode}입니다. Supabase 모드에서 댓글이
+                비어 있다면 아직 회원 댓글이 등록되지 않은 정상 상태입니다.
+                저장소 연결 검증은 로컬에서 `npm run qa:comment-moderation`으로
+                확인할 수 있습니다.
+              </p>
             </div>
           ) : null}
         </div>

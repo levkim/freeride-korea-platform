@@ -13,6 +13,7 @@ Connect admin comment moderation to Supabase.
 - Resolve target titles from `content_entries`.
 - Persist moderation actions to `comments`.
 - Record moderation history in `comment_events`.
+- Explain the empty Supabase comment state in the admin UI.
 - Keep public comment display on the existing seed fallback until member authentication and public comment creation are added.
 
 ## Consequences

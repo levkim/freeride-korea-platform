@@ -147,7 +147,7 @@ const persistenceAreas = [
   ["카테고리 목록/상세", "content_entries", "Supabase 읽기 + seed fallback 구현"],
   ["검토 대기열", "review_queue_items, review_events", "Supabase 읽기 + seed fallback 구현"],
   ["이벤트/뉴스 전용 CMS", "content_entries, event_entries", "전용 작성 폼 구현"],
-  ["댓글", "comments, comment_events", "스키마 준비 + mock 관리 액션 구현"],
+  ["댓글", "comments, comment_events", "Supabase 읽기 + 관리자 관리 액션 구현"],
   ["이미지 업로드", "storage bucket: content-images", "업로드 UI 준비 + Storage 연결 문서화"],
 ];
 
