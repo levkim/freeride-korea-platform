@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { MobileMenu } from "@/components/public/MobileMenu";
 import { eventSeriesOptions, getEventSeriesHref } from "@/lib/events/series";
+import { getCurrentMemberSession } from "@/lib/repositories/member-auth";
 
 type PublicNavItem = {
   label: string;
@@ -30,7 +31,13 @@ const navItems: PublicNavItem[] = [
   { label: "샵", href: "/shop" },
 ];
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const session = await getCurrentMemberSession();
+  const accountLabel = session.member?.name
+    ? `${session.member.name} 로그인`
+    : "로그인/가입";
+  const isLoggedIn = Boolean(session.user?.email);
+
   return (
     <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/90 shadow-[0_12px_40px_-35px_rgba(11,13,16,0.6)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-4 py-3 md:px-5">
@@ -88,7 +95,7 @@ export function SiteHeader() {
             variant="secondary"
             className="hidden border-zinc-300 bg-white text-zinc-950 hover:bg-zinc-100 md:inline-flex"
           >
-            회원 포털
+            {accountLabel}
           </Button>
           <Button
             href="/contact-join"
@@ -96,7 +103,11 @@ export function SiteHeader() {
           >
             문의·참여
           </Button>
-          <MobileMenu items={navItems} />
+          <MobileMenu
+            items={navItems}
+            accountLabel={accountLabel}
+            isLoggedIn={isLoggedIn}
+          />
         </div>
       </div>
     </header>

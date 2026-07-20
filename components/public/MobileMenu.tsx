@@ -15,9 +15,11 @@ type PublicNavItem = {
 
 type MobileMenuProps = {
   items: PublicNavItem[];
+  accountLabel: string;
+  isLoggedIn: boolean;
 };
 
-export function MobileMenu({ items }: MobileMenuProps) {
+export function MobileMenu({ items, accountLabel, isLoggedIn }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const mobileItems: PublicNavItem[] = [
     { label: "Home", href: "/" },
@@ -73,8 +75,13 @@ export function MobileMenu({ items }: MobileMenuProps) {
                     onClick={() => setOpen(false)}
                     className="border border-zinc-300 bg-white px-5 py-4 text-center text-sm font-black uppercase text-zinc-950 transition-colors hover:bg-zinc-100"
                   >
-                    회원 포털
+                    {accountLabel}
                   </Link>
+                  {isLoggedIn ? (
+                    <p className="border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-xs font-black text-emerald-800">
+                      로그인 상태
+                    </p>
+                  ) : null}
                   <Link
                     href="/contact-join"
                     onClick={() => setOpen(false)}
