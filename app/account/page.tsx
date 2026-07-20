@@ -1,5 +1,6 @@
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { SiteHeader } from "@/components/public/SiteHeader";
+import { MemberStatusLookup } from "@/components/public/MemberStatusLookup";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
@@ -99,6 +100,8 @@ export default function AccountPage() {
             ))}
           </div>
         </section>
+
+        <MemberStatusLookup />
 
         <section className="border-y border-zinc-200 bg-zinc-100">
           <div className="mx-auto grid max-w-7xl gap-6 px-5 py-12 lg:grid-cols-[0.7fr_1.3fr]">
