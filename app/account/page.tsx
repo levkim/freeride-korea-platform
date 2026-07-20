@@ -52,7 +52,12 @@ export default function AccountPage() {
                 후 진행됩니다.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Button href="/contact-join">회원가입 / 등급 전환</Button>
+                <Button
+                  href="/contact-join"
+                  className="border-zinc-300 bg-zinc-200 text-zinc-950 hover:bg-zinc-300"
+                >
+                  회원가입 / 등급 전환
+                </Button>
                 <Button href="/contact-join" variant="secondary">
                   문의하기
                 </Button>
