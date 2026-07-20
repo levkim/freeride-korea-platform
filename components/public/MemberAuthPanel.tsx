@@ -120,6 +120,9 @@ export function MemberAuthPanel({
                   <p className="text-sm font-black text-zinc-500">
                     로그인 계정
                   </p>
+                  <p className="text-xs font-black uppercase text-[var(--color-fk-red)]">
+                    공개 닉네임
+                  </p>
                   <h3 className="mt-2 text-2xl font-black">
                     {member?.name ?? email}
                   </h3>
@@ -203,6 +206,7 @@ export function MemberAuthPanel({
                 <h3 className="text-2xl font-black">회원가입</h3>
                 <div className="mt-5 grid gap-4">
                   <Field label="이름" name="name" autoComplete="name" />
+                  <Field label="닉네임" name="nickname" autoComplete="nickname" />
                   <Field
                     label="이메일"
                     name="email"

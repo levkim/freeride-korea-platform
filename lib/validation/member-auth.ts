@@ -8,6 +8,11 @@ export const memberSignInSchema = z.object({
 export const memberSignUpSchema = memberSignInSchema
   .extend({
     name: z.string().trim().min(2, "이름은 2자 이상 입력해 주세요."),
+    nickname: z
+      .string()
+      .trim()
+      .min(2, "닉네임은 2자 이상 입력해 주세요.")
+      .max(20, "닉네임은 20자 이하로 입력해 주세요."),
     passwordConfirm: z.string().min(8, "비밀번호 확인을 입력해 주세요."),
   })
   .refine((data) => data.password === data.passwordConfirm, {

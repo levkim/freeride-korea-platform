@@ -60,6 +60,7 @@ export async function lookupMemberStatusAction(
 export async function signUpMemberAction(formData: FormData) {
   const parsed = memberSignUpSchema.safeParse({
     name: formData.get("name"),
+    nickname: formData.get("nickname"),
     email: formData.get("email"),
     password: formData.get("password"),
     passwordConfirm: formData.get("passwordConfirm"),
@@ -79,13 +80,14 @@ export async function signUpMemberAction(formData: FormData) {
       options: {
         data: {
           name: parsed.data.name,
+          nickname: parsed.data.nickname,
         },
       },
     });
 
     if (!error) {
       await ensureGeneralMember({
-        name: parsed.data.name,
+        name: parsed.data.nickname,
         email: parsed.data.email,
       });
 

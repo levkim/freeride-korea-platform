@@ -85,9 +85,12 @@ export async function getCurrentMemberSession() {
 
   const created = await ensureGeneralMember({
     name:
-      typeof user.user_metadata?.name === "string" && user.user_metadata.name
-        ? user.user_metadata.name
-        : user.email,
+      typeof user.user_metadata?.nickname === "string" &&
+      user.user_metadata.nickname
+        ? user.user_metadata.nickname
+        : typeof user.user_metadata?.name === "string" && user.user_metadata.name
+          ? user.user_metadata.name
+          : user.email,
     email: user.email,
   });
 
