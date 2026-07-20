@@ -98,7 +98,7 @@ async function main() {
     NEXT_PUBLIC_SITE_URL: baseUrl,
   };
 
-  await runCommand(["run", "build"], { env: qaEnv });
+  await runCommand(["run", "build:next"], { env: qaEnv });
 
   const server = startServer();
 
