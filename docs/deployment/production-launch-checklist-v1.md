@@ -40,6 +40,7 @@ Expected result:
 - [ ] Create the Supabase project.
 - [ ] Run `docs/database/supabase-schema-v1.sql`.
 - [ ] Run `docs/database/supabase-rls-hotfix-v1.sql`.
+- [ ] Run `docs/database/supabase-seed-v1.sql` so the first production view has starter content.
 - [ ] Confirm Supabase Advisors no longer show public table RLS critical warnings.
 - [ ] Create the `content-images` Storage bucket.
 - [ ] Confirm `/admin/data-setup` shows expected table and bucket status after environment variables are set.
@@ -124,5 +125,5 @@ Launch only when:
 - [ ] GitHub Actions latest main run is successful.
 - [ ] `npm run qa:preflight` passes locally.
 - [ ] Hosting environment variables are configured.
-- [ ] Supabase schema, RLS, and Storage are configured.
+- [ ] Supabase schema, RLS, seed data, and Storage are configured.
 - [ ] Post-deploy smoke QA passes on the real domain.

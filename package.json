@@ -13,7 +13,8 @@
     "qa:deploy-env": "node ./scripts/qa-deploy-env.mjs",
     "qa:smoke": "node ./scripts/qa-smoke.mjs",
     "qa:release": "npm run lint && npm run qa:links && npm run qa:seo && npm run qa:runtime",
-    "qa:preflight": "node ./scripts/qa-preflight.mjs"
+    "qa:preflight": "node ./scripts/qa-preflight.mjs",
+    "db:seed:generate": "node ./scripts/generate-supabase-seed.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

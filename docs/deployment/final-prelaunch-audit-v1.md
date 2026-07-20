@@ -68,6 +68,7 @@ Database documents:
 
 - `docs/database/supabase-schema-v1.sql`
 - `docs/database/supabase-rls-hotfix-v1.sql`
+- `docs/database/supabase-seed-v1.sql`
 - `docs/database/supabase-storage-v1.md`
 
 Admin pages:
@@ -96,7 +97,7 @@ These are the only things that should block the next phase:
 - create the Supabase project
 - create `ADMIN_ACCESS_KEY`
 - configure hosting environment variables
-- run Supabase schema, RLS, and Storage setup
+- run Supabase schema, RLS, seed data, and Storage setup
 - deploy from `main`
 - run post-deploy QA against the real domain
 
@@ -107,9 +108,10 @@ Proceed to real service connection in this order:
 1. Create Supabase project.
 2. Apply schema SQL.
 3. Apply RLS hotfix SQL.
-4. Create `content-images` Storage bucket.
-5. Choose hosting platform.
-6. Configure environment variables.
+4. Apply seed data SQL.
+5. Create `content-images` Storage bucket.
+6. Choose hosting platform.
+7. Configure environment variables.
 7. Deploy `main`.
 8. Run post-deploy smoke QA.
 

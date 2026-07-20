@@ -59,21 +59,26 @@ const setupSteps = [
   ],
   [
     "4",
+    "초기 콘텐츠 SQL 적용",
+    "docs/database/supabase-seed-v1.sql을 실행해 공개 페이지용 시작 콘텐츠를 넣습니다.",
+  ],
+  [
+    "5",
     ".env.local 작성",
     ".env.example을 복사해 NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 값을 넣습니다.",
   ],
   [
-    "5",
+    "6",
     "로컬 서버 재시작",
     "환경변수는 서버 시작 시 읽히므로 npm run dev를 다시 실행합니다.",
   ],
   [
-    "6",
+    "7",
     "관리자 화면 확인",
     "/admin에서 데이터 저장 상태가 supabase로 바뀌는지 확인합니다.",
   ],
   [
-    "7",
+    "8",
     "테스트 입력",
     "문의, 카테고리 초안, 검토 액션을 하나씩 입력해 실제 DB에 저장되는지 확인합니다.",
   ],
@@ -94,18 +99,24 @@ const executionCommands = [
   ],
   [
     "3",
+    "초기 데이터 입력",
+    "docs/database/supabase-seed-v1.sql",
+    "공개 페이지가 비어 보이지 않도록 시작용 회원, 뉴스/비디오, 이벤트, 카테고리 콘텐츠를 넣습니다.",
+  ],
+  [
+    "4",
     "이미지 버킷 생성",
     "docs/database/supabase-storage-v1.md",
     "Storage에서 content-images bucket을 만들고 공개 이미지 정책을 확인합니다.",
   ],
   [
-    "4",
+    "5",
     "환경변수 점검",
     "npm run qa:deploy-env",
     "운영 도메인, 관리자 접근 키, Supabase URL, service role key를 확인합니다.",
   ],
   [
-    "5",
+    "6",
     "앱 연결 점검",
     "/admin/data-setup",
     "환경변수 설정 후 서버를 재시작하고 이 페이지의 Live DB Check를 확인합니다.",

@@ -95,6 +95,8 @@ Database schema:
 
 ```text
 docs/database/supabase-schema-v1.sql
+docs/database/supabase-rls-hotfix-v1.sql
+docs/database/supabase-seed-v1.sql
 ```
 
 Storage setup:

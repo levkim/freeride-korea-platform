@@ -27,6 +27,11 @@ const deploymentDocs = [
     "docs/database/supabase-rls-hotfix-v1.sql",
     "Supabase Advisors의 public table RLS critical 경고를 처리하기 위한 SQL입니다.",
   ],
+  [
+    "Initial seed data",
+    "docs/database/supabase-seed-v1.sql",
+    "Supabase 연결 직후 공개 페이지가 비지 않도록 초기 뉴스/이벤트/카테고리 콘텐츠를 넣습니다.",
+  ],
 ];
 
 const hostingSettings = [
