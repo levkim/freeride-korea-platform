@@ -20,6 +20,12 @@ const paths = [
   "/sitemap.xml",
 ];
 
+const protectedAdminPaths = new Set([
+  "/admin",
+  "/admin/deployment",
+  "/admin/data-setup",
+]);
+
 function resolveUrl(path) {
   return new URL(path, baseUrl).toString();
 }
@@ -34,13 +40,19 @@ async function checkPath(path) {
     });
 
     const contentType = response.headers.get("content-type") || "";
+    const location = response.headers.get("location") || "";
     const isOk =
-      response.status >= 200 && response.status < 300 && Boolean(contentType);
+      (response.status >= 200 && response.status < 300 && Boolean(contentType)) ||
+      (protectedAdminPaths.has(path) &&
+        response.status >= 300 &&
+        response.status < 400 &&
+        location.includes("/admin/login"));
 
     return {
       path,
       status: response.status,
       contentType,
+      location,
       ok: isOk,
     };
   } catch (error) {
