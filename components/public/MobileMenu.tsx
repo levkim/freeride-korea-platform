@@ -67,13 +67,22 @@ export function MobileMenu({ items }: MobileMenuProps) {
                     </Link>
                   </div>
                 ))}
-                <Link
-                  href="/contact-join"
-                  onClick={() => setOpen(false)}
-                  className="mx-5 mt-5 border border-zinc-300 bg-zinc-200 px-5 py-4 text-center text-sm font-black uppercase text-zinc-950 transition-colors hover:bg-zinc-300"
-                >
-                  문의·참여
-                </Link>
+                <div className="mx-5 mt-5 grid gap-3">
+                  <Link
+                    href="/account"
+                    onClick={() => setOpen(false)}
+                    className="border border-zinc-300 bg-white px-5 py-4 text-center text-sm font-black uppercase text-zinc-950 transition-colors hover:bg-zinc-100"
+                  >
+                    회원 포털
+                  </Link>
+                  <Link
+                    href="/contact-join"
+                    onClick={() => setOpen(false)}
+                    className="border border-zinc-300 bg-zinc-200 px-5 py-4 text-center text-sm font-black uppercase text-zinc-950 transition-colors hover:bg-zinc-300"
+                  >
+                    문의·참여
+                  </Link>
+                </div>
               </nav>
             </div>
           </div>,

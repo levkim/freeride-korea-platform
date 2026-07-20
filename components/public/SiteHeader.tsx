@@ -84,6 +84,13 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-3">
           <Button
+            href="/account"
+            variant="secondary"
+            className="hidden border-zinc-300 bg-white text-zinc-950 hover:bg-zinc-100 md:inline-flex"
+          >
+            회원 포털
+          </Button>
+          <Button
             href="/contact-join"
             className="hidden border-zinc-300 bg-zinc-200 text-zinc-950 hover:bg-zinc-300 md:inline-flex"
           >
