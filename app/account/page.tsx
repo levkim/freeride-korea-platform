@@ -4,7 +4,11 @@ import { MemberAuthPanel } from "@/components/public/MemberAuthPanel";
 import { MemberStatusLookup } from "@/components/public/MemberStatusLookup";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { getMemberProfileFromUser } from "@/lib/member-profile";
+import { listCommentsByAuthorId } from "@/lib/repositories/comments";
+import { listInquiriesByEmail } from "@/lib/repositories/inquiries";
 import { getCurrentMemberSession } from "@/lib/repositories/member-auth";
+import { listMemberContentActivities } from "@/lib/repositories/members";
 
 const memberSteps = [
   {
@@ -45,6 +49,19 @@ export const dynamic = "force-dynamic";
 export default async function AccountPage({ searchParams }: AccountPageProps) {
   const params = await searchParams;
   const session = await getCurrentMemberSession();
+  const profile = getMemberProfileFromUser(session.user, session.member);
+  const [inquiriesResult, contentsResult, commentsResult] =
+    session.user?.email || session.member?.id
+      ? await Promise.all([
+          listInquiriesByEmail(session.user?.email),
+          listMemberContentActivities(session.member?.id),
+          listCommentsByAuthorId(session.member?.id),
+        ])
+      : [
+          { items: [] },
+          { items: [] },
+          { items: [] },
+        ];
 
   return (
     <>
@@ -114,6 +131,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             missingEnv={session.missingEnv}
             member={session.member}
             email={session.user?.email}
+            profile={profile}
+            inquiries={inquiriesResult.items}
+            contents={contentsResult.items}
+            comments={commentsResult.items}
           />
         </div>
 

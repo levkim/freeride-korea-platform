@@ -3,8 +3,15 @@ import {
   signOutMemberAction,
   signUpMemberAction,
 } from "@/app/account/actions";
+import { MemberAccountManager } from "@/components/public/MemberAccountManager";
 import { Badge } from "@/components/ui/Badge";
+import type { CommentItem } from "@/lib/types/comment";
+import type { InquiryItem } from "@/lib/types/inquiry";
 import type { Member } from "@/lib/types/member";
+import type {
+  MemberContentActivity,
+  MemberProfile,
+} from "@/lib/types/member";
 
 const memberTypeLabels = {
   general: "일반회원",
@@ -32,6 +39,19 @@ const authMessages: Record<string, string> = {
   "signin-error": "이메일 또는 비밀번호가 올바르지 않습니다.",
   "auth-not-configured":
     "회원 로그인 환경변수가 아직 설정되지 않았습니다. NEXT_PUBLIC_SUPABASE_ANON_KEY 설정이 필요합니다.",
+  "profile-updated": "내 정보가 저장되었습니다.",
+  "profile-invalid": "내 정보 입력값을 다시 확인해 주세요.",
+  "profile-error": "내 정보 저장 중 문제가 발생했습니다.",
+  "email-invalid": "새 이메일 입력값을 다시 확인해 주세요.",
+  "email-error": "이메일 변경 요청 중 문제가 발생했습니다.",
+  "email-change-requested": "이메일 변경 확인 메일이 발송되었습니다. 메일 인증을 완료해 주세요.",
+  "password-invalid": "새 비밀번호 입력값을 다시 확인해 주세요.",
+  "password-error": "비밀번호 변경 중 문제가 발생했습니다.",
+  "password-updated": "비밀번호가 변경되었습니다.",
+  "withdrawal-invalid": "탈퇴 요청 입력값을 다시 확인해 주세요.",
+  "withdrawal-error": "탈퇴 요청 접수 중 문제가 발생했습니다.",
+  "withdrawal-requested": "회원 탈퇴 요청이 접수되었습니다. 운영진 검토 후 처리됩니다.",
+  "signin-required": "로그인 후 이용할 수 있습니다.",
 };
 
 function Field({
@@ -64,11 +84,19 @@ export function MemberAuthPanel({
   missingEnv,
   member,
   email,
+  profile,
+  inquiries,
+  contents,
+  comments,
 }: {
   authStatus?: string;
   missingEnv: string[];
   member: Member | null;
   email?: string | null;
+  profile: MemberProfile;
+  inquiries: InquiryItem[];
+  contents: MemberContentActivity[];
+  comments: CommentItem[];
 }) {
   const message = authStatus ? authMessages[authStatus] : null;
 
@@ -175,6 +203,16 @@ export function MemberAuthPanel({
                   로그아웃
                 </button>
               </form>
+              {email ? (
+                <MemberAccountManager
+                  member={member}
+                  email={email}
+                  profile={profile}
+                  inquiries={inquiries}
+                  contents={contents}
+                  comments={comments}
+                />
+              ) : null}
             </div>
           ) : (
             <div className="grid gap-5 xl:grid-cols-2">

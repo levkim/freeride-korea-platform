@@ -2,12 +2,22 @@
 
 import { redirect } from "next/navigation";
 
-import { ensureGeneralMember } from "@/lib/repositories/members";
+import { getMemberProfileFromUser } from "@/lib/member-profile";
+import { getCurrentMemberSession } from "@/lib/repositories/member-auth";
+import { persistWithdrawalRequest } from "@/lib/repositories/inquiries";
+import {
+  ensureGeneralMember,
+  updateMemberDisplayName,
+} from "@/lib/repositories/members";
 import { lookupMemberStatus } from "@/lib/repositories/member-status";
 import { createSupabaseAuthServerClient } from "@/lib/supabase/auth";
 import {
+  memberEmailUpdateSchema,
+  memberPasswordUpdateSchema,
+  memberProfileUpdateSchema,
   memberSignInSchema,
   memberSignUpSchema,
+  memberWithdrawalRequestSchema,
 } from "@/lib/validation/member-auth";
 import { memberStatusLookupSchema } from "@/lib/validation/member-status";
 
@@ -86,10 +96,20 @@ export async function signUpMemberAction(formData: FormData) {
     });
 
     if (!error) {
-      await ensureGeneralMember({
+      const memberResult = await ensureGeneralMember({
         name: parsed.data.nickname,
         email: parsed.data.email,
       });
+
+      if (data.session && memberResult.member?.id) {
+        await supabase.auth.updateUser({
+          data: {
+            name: parsed.data.name,
+            nickname: parsed.data.nickname,
+            memberId: memberResult.member.id,
+          },
+        });
+      }
 
       nextPath = data.session
         ? "/account?auth=signed-up"
@@ -140,4 +160,151 @@ export async function signOutMemberAction() {
   }
 
   redirect("/account?auth=signed-out");
+}
+
+export async function updateMemberProfileAction(formData: FormData) {
+  const parsed = memberProfileUpdateSchema.safeParse({
+    name: formData.get("name"),
+    nickname: formData.get("nickname"),
+    phone: formData.get("phone"),
+    location: formData.get("location"),
+    ridingLevel: formData.get("ridingLevel"),
+    preferredDiscipline: formData.get("preferredDiscipline"),
+    bio: formData.get("bio"),
+  });
+
+  if (!parsed.success) {
+    redirect("/account?auth=profile-invalid");
+  }
+
+  let nextPath = "/account?auth=profile-error";
+
+  try {
+    const session = await getCurrentMemberSession();
+
+    if (session.user?.email) {
+      const supabase = await createSupabaseAuthServerClient();
+      const profile = {
+        name: parsed.data.name,
+        nickname: parsed.data.nickname,
+        phone: parsed.data.phone || "",
+        location: parsed.data.location || "",
+        ridingLevel: parsed.data.ridingLevel || "",
+        preferredDiscipline: parsed.data.preferredDiscipline || "",
+        bio: parsed.data.bio || "",
+      };
+
+      const { error } = await supabase.auth.updateUser({
+        data: profile,
+      });
+
+      if (!error) {
+        if (session.member?.id) {
+          await updateMemberDisplayName(session.member.id, parsed.data.nickname);
+        }
+
+        nextPath = "/account?auth=profile-updated";
+      }
+    } else {
+      nextPath = "/account?auth=signin-required";
+    }
+  } catch {
+    nextPath = "/account?auth=profile-error";
+  }
+
+  redirect(nextPath);
+}
+
+export async function updateMemberEmailAction(formData: FormData) {
+  const parsed = memberEmailUpdateSchema.safeParse({
+    email: formData.get("email"),
+  });
+
+  if (!parsed.success) {
+    redirect("/account?auth=email-invalid");
+  }
+
+  let nextPath = "/account?auth=email-error";
+
+  try {
+    const session = await getCurrentMemberSession();
+    const supabase = await createSupabaseAuthServerClient();
+    const { error } = await supabase.auth.updateUser({
+      email: parsed.data.email.toLowerCase(),
+      data: {
+        ...session.user?.user_metadata,
+        memberId: session.member?.id,
+      },
+    });
+
+    if (!error) {
+      nextPath = "/account?auth=email-change-requested";
+    }
+  } catch {
+    nextPath = "/account?auth=email-error";
+  }
+
+  redirect(nextPath);
+}
+
+export async function updateMemberPasswordAction(formData: FormData) {
+  const parsed = memberPasswordUpdateSchema.safeParse({
+    password: formData.get("password"),
+    passwordConfirm: formData.get("passwordConfirm"),
+  });
+
+  if (!parsed.success) {
+    redirect("/account?auth=password-invalid");
+  }
+
+  let nextPath = "/account?auth=password-error";
+
+  try {
+    const supabase = await createSupabaseAuthServerClient();
+    const { error } = await supabase.auth.updateUser({
+      password: parsed.data.password,
+    });
+
+    if (!error) {
+      nextPath = "/account?auth=password-updated";
+    }
+  } catch {
+    nextPath = "/account?auth=password-error";
+  }
+
+  redirect(nextPath);
+}
+
+export async function requestMemberWithdrawalAction(formData: FormData) {
+  const parsed = memberWithdrawalRequestSchema.safeParse({
+    reason: formData.get("reason"),
+  });
+
+  if (!parsed.success) {
+    redirect("/account?auth=withdrawal-invalid");
+  }
+
+  let nextPath = "/account?auth=withdrawal-error";
+
+  try {
+    const session = await getCurrentMemberSession();
+
+    if (session.user?.email) {
+      const profile = getMemberProfileFromUser(session.user, session.member);
+      await persistWithdrawalRequest({
+        name: profile.realName || profile.nickname || session.user.email,
+        email: session.user.email,
+        phone: profile.phone,
+        reason: parsed.data.reason,
+      });
+
+      nextPath = "/account?auth=withdrawal-requested";
+    } else {
+      nextPath = "/account?auth=signin-required";
+    }
+  } catch {
+    nextPath = "/account?auth=withdrawal-error";
+  }
+
+  redirect(nextPath);
 }

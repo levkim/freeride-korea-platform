@@ -257,6 +257,58 @@ export async function listAdminComments(): Promise<{
   };
 }
 
+export async function listCommentsByAuthorId(
+  authorId?: string | null,
+): Promise<{
+  items: CommentItem[];
+  mode: "supabase" | "mock";
+}> {
+  if (!authorId || !hasSupabaseAdminEnv()) {
+    return {
+      items: [],
+      mode: hasSupabaseAdminEnv() ? "supabase" : "mock",
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("comments")
+    .select(
+      "id,target_type,target_content_id,target_event_id,author_id,body,status,report_count,pinned,created_at",
+    )
+    .eq("author_id", authorId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []) as CommentRow[];
+
+  if (!rows.length) {
+    return {
+      items: [],
+      mode: "supabase",
+    };
+  }
+
+  const contentIds = Array.from(
+    new Set(
+      rows.map(getCommentTargetId).filter((id): id is string => Boolean(id)),
+    ),
+  );
+  const [memberById, contentTitleById] = await Promise.all([
+    getMembersById([authorId]),
+    getContentTitlesById(contentIds),
+  ]);
+
+  return {
+    items: rows.map((row) => rowToCommentItem(row, memberById, contentTitleById)),
+    mode: "supabase",
+  };
+}
+
 export async function persistCommentAction(
   input: CommentActionInput,
 ): Promise<PersistCommentActionResult> {

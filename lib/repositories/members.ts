@@ -4,7 +4,12 @@ import {
   getMissingSupabaseAdminEnv,
   hasSupabaseAdminEnv,
 } from "@/lib/supabase/admin";
-import type { Member, MemberStatus, MemberType } from "@/lib/types/member";
+import type {
+  Member,
+  MemberContentActivity,
+  MemberStatus,
+  MemberType,
+} from "@/lib/types/member";
 import type { MemberUpdateActionInput } from "@/lib/validation/member-action";
 
 type MemberRow = {
@@ -31,6 +36,20 @@ type EnsureGeneralMemberResult = {
 type UpdateMemberResult = {
   mode: "supabase" | "mock";
   missingEnv?: string[];
+};
+
+type MemberProfileNameResult = {
+  mode: "supabase" | "mock";
+  missingEnv?: string[];
+};
+
+type MemberContentRow = {
+  id: string;
+  kind: string;
+  status: string;
+  title_ko: string | null;
+  title_en: string | null;
+  created_at: string;
 };
 
 function mapMemberRow(row: MemberRow): Member {
@@ -159,5 +178,71 @@ export async function updateMember(
 
   return {
     mode: "supabase",
+  };
+}
+
+export async function updateMemberDisplayName(
+  memberId: string,
+  nickname: string,
+): Promise<MemberProfileNameResult> {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock",
+      missingEnv: getMissingSupabaseAdminEnv(),
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("members")
+    .update({
+      name: nickname,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", memberId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase",
+  };
+}
+
+export async function listMemberContentActivities(
+  memberId?: string | null,
+): Promise<{
+  items: MemberContentActivity[];
+  mode: "supabase" | "mock";
+}> {
+  if (!memberId || !hasSupabaseAdminEnv()) {
+    return {
+      items: [],
+      mode: hasSupabaseAdminEnv() ? "supabase" : "mock",
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("content_entries")
+    .select("id,kind,status,title_ko,title_en,created_at")
+    .eq("author_id", memberId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase",
+    items: ((data ?? []) as MemberContentRow[]).map((row) => ({
+      id: row.id,
+      kind: row.kind,
+      status: row.status,
+      title: row.title_ko || row.title_en || "제목 없음",
+      createdAt: row.created_at.slice(0, 10),
+    })),
   };
 }

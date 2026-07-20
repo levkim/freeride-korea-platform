@@ -15,3 +15,21 @@ export type Member = {
   status: MemberStatus;
   joinedAt: string;
 };
+
+export type MemberProfile = {
+  realName: string;
+  nickname: string;
+  phone: string;
+  location: string;
+  ridingLevel: string;
+  preferredDiscipline: string;
+  bio: string;
+};
+
+export type MemberContentActivity = {
+  id: string;
+  kind: string;
+  status: string;
+  title: string;
+  createdAt: string;
+};

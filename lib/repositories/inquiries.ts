@@ -149,6 +149,81 @@ export async function listInquiries(): Promise<{
   };
 }
 
+export async function listInquiriesByEmail(email?: string | null): Promise<{
+  items: InquiryItem[];
+  mode: "supabase" | "mock";
+}> {
+  if (!email || !hasSupabaseAdminEnv()) {
+    return {
+      items: email
+        ? inquiryItems.filter(
+            (item) => item.email.toLowerCase() === email.toLowerCase(),
+          )
+        : [],
+      mode: "mock",
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("inquiry_entries")
+    .select(
+      "id,inquiry_type,status,name,email,phone,title,message,assigned_to,created_at",
+    )
+    .eq("email", email.toLowerCase())
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    items: (data as InquiryRow[]).map(mapInquiryRow),
+    mode: "supabase",
+  };
+}
+
+export async function persistWithdrawalRequest(input: {
+  name: string;
+  email: string;
+  phone?: string;
+  reason?: string;
+}): Promise<PersistInquiryResult> {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock",
+      missingEnv: getMissingSupabaseAdminEnv(),
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("inquiry_entries")
+    .insert({
+      inquiry_type: "membership",
+      name: input.name,
+      email: input.email.toLowerCase(),
+      phone: input.phone || null,
+      requested_member_type: "회원 탈퇴 요청",
+      title: "회원 탈퇴 요청",
+      message:
+        input.reason?.trim() ||
+        "회원이 계정 페이지에서 탈퇴 검토를 요청했습니다.",
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    mode: "supabase",
+    inquiryId: data.id as string,
+  };
+}
+
 export async function getInquiryById(id: string): Promise<{
   item: InquiryItem | null;
   mode: "supabase" | "mock";
