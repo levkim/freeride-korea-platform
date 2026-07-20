@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
   listAdminComments,
-  listCommentThreadSummaries,
+  summarizeCommentThreads,
 } from "@/lib/repositories/comments";
 import { listInquiries } from "@/lib/repositories/inquiries";
 import { listMembers } from "@/lib/repositories/members";
@@ -20,13 +20,15 @@ function getUrgencyTone(count: number) {
 }
 
 export default async function AdminPage() {
-  const [reviewQueueItems, membersResult, inquiriesResult] = await Promise.all([
-    listReviewQueueItems(),
-    listMembers(),
-    listInquiries(),
-  ]);
-  const comments = listAdminComments();
-  const commentThreads = listCommentThreadSummaries();
+  const [reviewQueueItems, membersResult, inquiriesResult, commentsResult] =
+    await Promise.all([
+      listReviewQueueItems(),
+      listMembers(),
+      listInquiries(),
+      listAdminComments(),
+    ]);
+  const comments = commentsResult.items;
+  const commentThreads = summarizeCommentThreads(comments);
   const supabaseStatus = getSupabaseAdminStatus();
   const reviewNeededCount = reviewQueueItems.filter((item) =>
     ["new", "reviewing", "review", "needs_revision"].includes(item.status),
@@ -162,7 +164,7 @@ export default async function AdminPage() {
               ["회원", membersResult.items.length, membersResult.mode],
               ["문의", inquiriesResult.items.length, inquiriesResult.mode],
               ["검토", reviewQueueItems.length, "review queue"],
-              ["댓글", comments.length, "mock v1"],
+              ["댓글", comments.length, commentsResult.mode],
               ["댓글 스레드", commentThreads.length, "thread"],
               ["신고", reportedCommentCount, "reported"],
             ].map(([label, value, mode]) => (

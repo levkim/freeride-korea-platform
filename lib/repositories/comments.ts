@@ -5,11 +5,43 @@ import type {
   CommentThreadSummary,
 } from "@/lib/types/comment";
 import type { CommentActionInput } from "@/lib/validation/comment-action";
+import type { MemberType } from "@/lib/types/member";
+import {
+  createSupabaseAdminClient,
+  getMissingSupabaseAdminEnv,
+  hasSupabaseAdminEnv,
+} from "@/lib/supabase/admin";
 
 type PersistCommentActionResult = {
-  mode: "mock";
+  mode: "supabase" | "mock";
+  missingEnv?: string[];
   commentId: string;
   action: CommentActionInput["action"];
+};
+
+type CommentRow = {
+  id: string;
+  target_type: CommentTargetType;
+  target_content_id: string | null;
+  target_event_id: string | null;
+  author_id: string;
+  body: string;
+  status: CommentStatus;
+  report_count: number;
+  pinned: boolean;
+  created_at: string;
+};
+
+type MemberRow = {
+  id: string;
+  name: string;
+  member_type: MemberType;
+};
+
+type ContentTitleRow = {
+  id: string;
+  title_ko: string | null;
+  title_en: string | null;
 };
 
 const commentItems: CommentItem[] = [
@@ -66,6 +98,101 @@ const commentItems: CommentItem[] = [
 
 const visibleStatuses: CommentStatus[] = ["visible", "reported"];
 
+function getCommentTargetId(row: CommentRow) {
+  return row.target_type === "event"
+    ? row.target_event_id
+    : row.target_content_id;
+}
+
+function getTargetTitle(row: CommentRow, contentTitleById: Map<string, string>) {
+  const targetId = getCommentTargetId(row);
+
+  if (!targetId) {
+    return "연결 대상 없음";
+  }
+
+  return contentTitleById.get(targetId) ?? "콘텐츠 제목 확인 필요";
+}
+
+function rowToCommentItem(
+  row: CommentRow,
+  memberById: Map<string, MemberRow>,
+  contentTitleById: Map<string, string>,
+): CommentItem {
+  const member = memberById.get(row.author_id);
+
+  return {
+    id: row.id,
+    targetType: row.target_type,
+    targetId: getCommentTargetId(row) ?? row.id,
+    targetTitle: getTargetTitle(row, contentTitleById),
+    authorName: member?.name ?? "회원 정보 확인 필요",
+    authorType: member?.member_type ?? "general",
+    body: row.body,
+    status: row.status,
+    createdAt: row.created_at,
+    reportCount: row.report_count,
+    pinned: row.pinned,
+  };
+}
+
+async function getCommentRows() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("comments")
+    .select(
+      "id,target_type,target_content_id,target_event_id,author_id,body,status,report_count,pinned,created_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as CommentRow[];
+}
+
+async function getMembersById(authorIds: string[]) {
+  if (!authorIds.length) {
+    return new Map<string, MemberRow>();
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("members")
+    .select("id,name,member_type")
+    .in("id", authorIds);
+
+  if (error || !data?.length) {
+    return new Map<string, MemberRow>();
+  }
+
+  return new Map((data as MemberRow[]).map((row) => [row.id, row]));
+}
+
+async function getContentTitlesById(contentIds: string[]) {
+  if (!contentIds.length) {
+    return new Map<string, string>();
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("content_entries")
+    .select("id,title_ko,title_en")
+    .in("id", contentIds);
+
+  if (error || !data?.length) {
+    return new Map<string, string>();
+  }
+
+  return new Map(
+    (data as ContentTitleRow[]).map((row) => [
+      row.id,
+      row.title_ko || row.title_en || "제목 없음",
+    ]),
+  );
+}
+
 export function listCommentsForTarget(
   targetType: CommentTargetType,
   targetId: string,
@@ -90,26 +217,130 @@ export function listCommentsForTarget(
     });
 }
 
-export function listAdminComments() {
-  return [...commentItems].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+export async function listAdminComments(): Promise<{
+  items: CommentItem[];
+  mode: "supabase" | "mock";
+}> {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      items: [...commentItems].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+      mode: "mock",
+    };
+  }
+
+  const rows = await getCommentRows();
+
+  if (!rows.length) {
+    return {
+      items: [],
+      mode: "supabase",
+    };
+  }
+
+  const authorIds = Array.from(new Set(rows.map((row) => row.author_id)));
+  const contentIds = Array.from(
+    new Set(
+      rows.map(getCommentTargetId).filter((id): id is string => Boolean(id)),
+    ),
   );
+  const [memberById, contentTitleById] = await Promise.all([
+    getMembersById(authorIds),
+    getContentTitlesById(contentIds),
+  ]);
+
+  return {
+    items: rows.map((row) => rowToCommentItem(row, memberById, contentTitleById)),
+    mode: "supabase",
+  };
 }
 
 export async function persistCommentAction(
   input: CommentActionInput,
 ): Promise<PersistCommentActionResult> {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      mode: "mock",
+      missingEnv: getMissingSupabaseAdminEnv(),
+      commentId: input.commentId,
+      action: input.action,
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data: comment, error: readError } = await supabase
+    .from("comments")
+    .select("id,status,pinned")
+    .eq("id", input.commentId)
+    .maybeSingle();
+
+  if (readError) {
+    throw new Error(readError.message);
+  }
+
+  if (!comment) {
+    return {
+      mode: "supabase",
+      commentId: input.commentId,
+      action: input.action,
+    };
+  }
+
+  const nextStatus =
+    input.action === "mark_visible"
+      ? "visible"
+      : input.action === "hide"
+        ? "hidden"
+        : input.action === "delete"
+          ? "deleted"
+          : comment.status;
+  const nextPinned =
+    input.action === "pin"
+      ? true
+      : input.action === "unpin"
+        ? false
+        : comment.pinned;
+
+  const { error: updateError } = await supabase
+    .from("comments")
+    .update({
+      status: nextStatus,
+      pinned: nextPinned,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.commentId);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  const { error: eventError } = await supabase.from("comment_events").insert({
+    comment_id: input.commentId,
+    action: input.action,
+    from_status: comment.status,
+    to_status: nextStatus,
+    note: `관리자 댓글 액션: ${input.action}`,
+  });
+
+  if (eventError) {
+    throw new Error(eventError.message);
+  }
+
   return {
-    mode: "mock",
+    mode: "supabase",
     commentId: input.commentId,
     action: input.action,
   };
 }
 
-export function listCommentThreadSummaries(): CommentThreadSummary[] {
+export function summarizeCommentThreads(
+  comments: CommentItem[],
+): CommentThreadSummary[] {
   const grouped = new Map<string, CommentItem[]>();
 
-  for (const comment of commentItems) {
+  for (const comment of comments) {
     const key = `${comment.targetType}:${comment.targetId}`;
     grouped.set(key, [...(grouped.get(key) ?? []), comment]);
   }
@@ -134,4 +365,8 @@ export function listCommentThreadSummaries(): CommentThreadSummary[] {
     .sort(
       (a, b) => new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime(),
     );
+}
+
+export function listCommentThreadSummaries(): CommentThreadSummary[] {
+  return summarizeCommentThreads(commentItems);
 }

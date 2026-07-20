@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { updateCommentAction } from "@/app/admin/comments/actions";
 import {
   listAdminComments,
-  listCommentThreadSummaries,
+  summarizeCommentThreads,
 } from "@/lib/repositories/comments";
 import type { CommentStatus, CommentTargetType } from "@/lib/types/comment";
 
@@ -103,7 +103,7 @@ export default async function AdminCommentsPage({
     : "all";
   const actionResult = resolvedSearchParams?.result;
   const actionMode = resolvedSearchParams?.mode;
-  const comments = listAdminComments();
+  const { items: comments, mode: commentsMode } = await listAdminComments();
   const filteredComments = comments.filter((comment) => {
     const matchesStatus =
       activeStatus === "all" || comment.status === activeStatus;
@@ -112,7 +112,7 @@ export default async function AdminCommentsPage({
 
     return matchesStatus && matchesTarget;
   });
-  const threads = listCommentThreadSummaries();
+  const threads = summarizeCommentThreads(comments);
   const reportedCount = comments.filter(
     (comment) => comment.status === "reported",
   ).length;
@@ -224,7 +224,7 @@ export default async function AdminCommentsPage({
             <h2 className="mt-2 text-2xl font-black">최근 댓글</h2>
           </div>
           <p className="text-sm font-bold text-zinc-500">
-            v1에서는 목업 데이터로 운영 흐름을 확인합니다.
+            현재 댓글 저장소: {commentsMode}
           </p>
         </div>
 
