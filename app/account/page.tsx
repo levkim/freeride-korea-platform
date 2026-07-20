@@ -54,7 +54,8 @@ export default function AccountPage() {
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button
                   href="/contact-join"
-                  className="border-zinc-300 bg-zinc-200 text-zinc-950 hover:bg-zinc-300"
+                  variant="secondary"
+                  className="border-zinc-300 bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
                 >
                   회원가입 / 등급 전환
                 </Button>
