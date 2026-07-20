@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { reviewQueueItems } from "@/content/seed/site-data";
 import {
   getReviewQueueItemById,
+  getReviewSubjectContext,
   listReviewEvents,
 } from "@/lib/repositories/review-queue";
 import type { MemberType } from "@/lib/types/member";
@@ -96,6 +97,14 @@ const resultMessages: Record<string, string> = {
   invalid: "관리자 코멘트를 5자 이상 입력한 뒤 다시 시도해 주세요.",
 };
 
+function getMemberTypeLabel(memberType?: MemberType) {
+  if (!memberType) {
+    return "확인 필요";
+  }
+
+  return memberRoleLabels[memberType];
+}
+
 export function generateStaticParams() {
   return reviewQueueItems.map((item) => ({ id: item.id }));
 }
@@ -125,7 +134,10 @@ export default async function ReviewQueueDetailPage({
     notFound();
   }
 
-  const reviewEvents = await listReviewEvents(item.id, item);
+  const [reviewEvents, subjectContext] = await Promise.all([
+    listReviewEvents(item.id, item),
+    getReviewSubjectContext(item.id),
+  ]);
   const isHighRisk = item.risk === "high";
 
   return (
@@ -205,6 +217,95 @@ export default async function ReviewQueueDetailPage({
           ) : null}
         </article>
       </section>
+
+      {subjectContext.kind === "member-upgrade" ? (
+        <section className="mt-8 border border-zinc-200 bg-white p-5">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
+            <div>
+              <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
+                회원 전환 신청 정보
+              </p>
+              <h2 className="mt-3 text-2xl font-black">
+                신청자와 요청 등급을 확인하세요
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">
+                이 항목은 문의/참여 폼에서 생성된 회원 등급 전환 요청입니다.
+                승인 전 신청자의 현재 등급, 요청 등급, 라이딩 경험, 문의 내용을
+                확인한 뒤 회원 관리 화면에서 등급을 저장합니다.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {subjectContext.inquiry ? (
+                <Link
+                  href={`/admin/contact-join/${subjectContext.inquiry.id}`}
+                  className="border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-black text-zinc-950 transition-colors hover:bg-zinc-200"
+                >
+                  문의 상세 보기
+                </Link>
+              ) : null}
+              <Link
+                href="/admin/members"
+                className="border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-black text-zinc-950 transition-colors hover:bg-zinc-200"
+              >
+                회원 관리로 이동
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+            <div className="border border-zinc-200 bg-zinc-50 p-4">
+              <p className="text-xs font-black uppercase text-zinc-500">
+                신청 회원
+              </p>
+              <p className="mt-2 text-xl font-black">
+                {subjectContext.member?.name ?? "회원 정보 확인 필요"}
+              </p>
+              <p className="mt-2 text-sm font-bold text-zinc-600">
+                {subjectContext.member?.email ?? "이메일 정보 없음"}
+              </p>
+              <p className="mt-4 text-sm font-bold text-zinc-700">
+                현재 등급: {getMemberTypeLabel(subjectContext.member?.memberType)}
+              </p>
+              <p className="mt-1 text-sm font-bold text-zinc-700">
+                상태: {subjectContext.member?.status ?? "확인 필요"}
+              </p>
+            </div>
+
+            <div className="border border-zinc-200 bg-zinc-50 p-4">
+              <p className="text-xs font-black uppercase text-zinc-500">
+                요청 정보
+              </p>
+              <p className="mt-2 text-xl font-black">
+                {subjectContext.inquiry?.requestedMemberType ?? "요청 등급 확인 필요"}
+              </p>
+              <p className="mt-4 text-sm font-bold text-zinc-700">
+                연락처: {subjectContext.inquiry?.phone ?? "미입력"}
+              </p>
+              <p className="mt-1 text-sm font-bold text-zinc-700">
+                신청일: {subjectContext.inquiry?.createdAt ?? item.createdAt}
+              </p>
+            </div>
+
+            <div className="border border-zinc-200 bg-zinc-50 p-4">
+              <p className="text-xs font-black uppercase text-zinc-500">
+                라이딩 경험
+              </p>
+              <p className="mt-2 text-sm font-bold leading-6 text-zinc-700">
+                {subjectContext.inquiry?.ridingExperience || "입력된 라이딩 경험이 없습니다."}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 border border-zinc-200 bg-zinc-50 p-4">
+            <p className="text-xs font-black uppercase text-zinc-500">
+              신청 내용
+            </p>
+            <p className="mt-2 text-sm font-bold leading-6 text-zinc-700">
+              {subjectContext.inquiry?.message ?? "연결된 문의 내용을 찾지 못했습니다."}
+            </p>
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-8 grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
         <div>

@@ -31,6 +31,31 @@ export type ReviewQueueItem = {
   createdAt: string;
 };
 
+export type ReviewSubjectContext =
+  | {
+      kind: "member-upgrade";
+      member?: {
+        id: string;
+        name: string;
+        email: string;
+        memberType: MemberType;
+        status: string;
+        joinedAt: string;
+      };
+      inquiry?: {
+        id: string;
+        title: string;
+        phone?: string;
+        ridingExperience?: string;
+        requestedMemberType?: string;
+        message: string;
+        createdAt: string;
+      };
+    }
+  | {
+      kind: "none";
+    };
+
 export type ReviewEventItem = {
   id: string;
   action: ReviewActionKind;

@@ -6,6 +6,7 @@ import type {
   ReviewEventItem,
   ReviewQueueItem,
   ReviewSubjectKind,
+  ReviewSubjectContext,
 } from "@/lib/types/review";
 import {
   createSupabaseAdminClient,
@@ -16,6 +17,8 @@ type ReviewQueueRow = {
   id: string;
   subject_kind: ReviewSubjectKind;
   content_id: string | null;
+  member_id?: string | null;
+  inquiry_id?: string | null;
   title: string;
   status: ReviewQueueItem["status"];
   risk: ReviewQueueItem["risk"];
@@ -37,6 +40,32 @@ type ReviewEventRow = {
   to_status: ReviewEventItem["toStatus"];
   actor_id: string | null;
   note: string;
+  created_at: string;
+};
+
+type ReviewSubjectRow = {
+  id: string;
+  subject_kind: ReviewSubjectKind;
+  member_id: string | null;
+  inquiry_id: string | null;
+};
+
+type ReviewMemberRow = {
+  id: string;
+  name: string;
+  email: string;
+  member_type: MemberType;
+  status: string;
+  joined_at: string;
+};
+
+type ReviewInquiryRow = {
+  id: string;
+  title: string;
+  phone: string | null;
+  riding_experience: string | null;
+  requested_member_type: string | null;
+  message: string;
   created_at: string;
 };
 
@@ -191,6 +220,84 @@ export async function getReviewQueueItemById(
   );
 
   return rowToReviewQueueItem(row, contentKindById);
+}
+
+export async function getReviewSubjectContext(
+  id: string,
+): Promise<ReviewSubjectContext> {
+  if (!hasSupabaseAdminEnv()) {
+    return { kind: "none" };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data: reviewData, error: reviewError } = await supabase
+    .from("review_queue_items")
+    .select("id, subject_kind, member_id, inquiry_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (reviewError || !reviewData) {
+    return { kind: "none" };
+  }
+
+  const reviewRow = reviewData as ReviewSubjectRow;
+
+  if (reviewRow.subject_kind !== "member-upgrade") {
+    return { kind: "none" };
+  }
+
+  const [memberResult, inquiryResult] = await Promise.all([
+    reviewRow.member_id
+      ? supabase
+          .from("members")
+          .select("id, name, email, member_type, status, joined_at")
+          .eq("id", reviewRow.member_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    reviewRow.inquiry_id
+      ? supabase
+          .from("inquiry_entries")
+          .select(
+            "id, title, phone, riding_experience, requested_member_type, message, created_at",
+          )
+          .eq("id", reviewRow.inquiry_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  const memberRow =
+    !memberResult.error && memberResult.data
+      ? (memberResult.data as ReviewMemberRow)
+      : null;
+  const inquiryRow =
+    !inquiryResult.error && inquiryResult.data
+      ? (inquiryResult.data as ReviewInquiryRow)
+      : null;
+
+  return {
+    kind: "member-upgrade",
+    member: memberRow
+      ? {
+          id: memberRow.id,
+          name: memberRow.name,
+          email: memberRow.email,
+          memberType: memberRow.member_type,
+          status: memberRow.status,
+          joinedAt: memberRow.joined_at.slice(0, 10),
+        }
+      : undefined,
+    inquiry: inquiryRow
+      ? {
+          id: inquiryRow.id,
+          title: inquiryRow.title,
+          phone: inquiryRow.phone ?? undefined,
+          ridingExperience: inquiryRow.riding_experience ?? undefined,
+          requestedMemberType: inquiryRow.requested_member_type ?? undefined,
+          message: inquiryRow.message,
+          createdAt: inquiryRow.created_at.slice(0, 10),
+        }
+      : undefined,
+  };
 }
 
 export async function listReviewEvents(
