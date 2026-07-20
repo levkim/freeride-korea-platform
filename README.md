@@ -78,8 +78,8 @@ npm run qa:preflight
 After deployment:
 
 ```powershell
-QA_BASE_URL=https://your-domain.example npm run qa:smoke
-QA_BASE_URL=https://your-domain.example npm run qa:release
+QA_BASE_URL=https://www.freeride.kr npm run qa:smoke
+QA_BASE_URL=https://www.freeride.kr npm run qa:release
 ```
 
 ## Data Mode

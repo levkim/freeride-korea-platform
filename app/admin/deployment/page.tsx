@@ -42,7 +42,7 @@ const hostingSettings = [
   ["Build command", "npm run build"],
   ["Start command", "npm run start"],
   ["Health check path", "/healthz"],
-  ["Post-deploy smoke QA", "QA_BASE_URL=https://your-domain.example npm run qa:smoke"],
+  ["Post-deploy smoke QA", "QA_BASE_URL=https://www.freeride.kr npm run qa:smoke"],
 ];
 
 type ChecklistItem = {
@@ -189,8 +189,8 @@ const qaCommands = [
   "npm run qa:smoke",
   "curl http://localhost:3000/health",
   "curl http://localhost:3000/healthz",
-  "QA_BASE_URL=https://your-domain.example npm run qa:smoke",
-  "QA_BASE_URL=https://your-domain.example npm run qa:release",
+  "QA_BASE_URL=https://www.freeride.kr npm run qa:smoke",
+  "QA_BASE_URL=https://www.freeride.kr npm run qa:release",
 ];
 
 export const metadata = {

@@ -21,7 +21,7 @@ Health check path: /healthz
 ## Required Environment Variables
 
 ```text
-NEXT_PUBLIC_SITE_URL=https://your-domain.example
+NEXT_PUBLIC_SITE_URL=https://www.freeride.kr
 ADMIN_ACCESS_KEY=<16+ character temporary admin key>
 NEXT_PUBLIC_SUPABASE_URL=<Supabase project URL>
 SUPABASE_SERVICE_ROLE_KEY=<Supabase service role key>
@@ -39,9 +39,9 @@ npm run qa:preflight
 ## Post Deploy Checks
 
 ```powershell
-QA_BASE_URL=https://your-domain.example npm run qa:smoke
-QA_BASE_URL=https://your-domain.example npm run qa:release
-curl https://your-domain.example/healthz
+QA_BASE_URL=https://www.freeride.kr npm run qa:smoke
+QA_BASE_URL=https://www.freeride.kr npm run qa:release
+curl https://www.freeride.kr/healthz
 ```
 
 ## Operator Notes
