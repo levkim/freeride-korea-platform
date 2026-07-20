@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requireAdminAction } from "@/lib/authz/server";
 import { persistCommentAction } from "@/lib/repositories/comments";
 import { commentActionInputSchema } from "@/lib/validation/comment-action";
 
@@ -18,6 +19,12 @@ function withResult(returnTo: string, result: string, mode?: string) {
 }
 
 export async function updateCommentAction(formData: FormData) {
+  try {
+    await requireAdminAction();
+  } catch {
+    redirect("/admin/login?error=forbidden&next=/admin/comments");
+  }
+
   const parsed = commentActionInputSchema.safeParse({
     commentId: formData.get("commentId"),
     action: formData.get("action"),

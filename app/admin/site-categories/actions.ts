@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requireAdminAction } from "@/lib/authz/server";
 import { updateCategoryContentStatus } from "@/lib/repositories/category-content";
 import { categoryStatusActionInputSchema } from "@/lib/validation/category-status-action";
 
@@ -18,6 +19,12 @@ function withResult(returnTo: string, result: string, mode?: string) {
 }
 
 export async function updateCategoryContentStatusAction(formData: FormData) {
+  try {
+    await requireAdminAction();
+  } catch {
+    redirect("/admin/login?error=forbidden&next=/admin/site-categories");
+  }
+
   const parsed = categoryStatusActionInputSchema.safeParse({
     contentId: formData.get("contentId"),
     status: formData.get("status"),

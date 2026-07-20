@@ -1,10 +1,17 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requireAdminAction } from "@/lib/authz/server";
 import { updateMember } from "@/lib/repositories/members";
 import { memberUpdateActionSchema } from "@/lib/validation/member-action";
 
 export async function submitMemberUpdate(formData: FormData) {
+  try {
+    await requireAdminAction();
+  } catch {
+    redirect("/admin/login?error=forbidden&next=/admin/members");
+  }
+
   const parsed = memberUpdateActionSchema.safeParse({
     memberId: formData.get("memberId"),
     memberType: formData.get("memberType"),

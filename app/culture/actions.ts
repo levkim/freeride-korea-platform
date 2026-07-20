@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import {
+  assertMemberCanAuthor,
+  getSignedInMemberOrThrow,
+} from "@/lib/authz/server";
+import {
   hideMemberBoardPost,
   persistMemberBoardPost,
   updateMemberBoardPost,
@@ -12,7 +16,6 @@ import {
   persistMemberComment,
   reportMemberComment,
 } from "@/lib/repositories/comments";
-import { getCurrentMemberSession } from "@/lib/repositories/member-auth";
 
 const boardKindSchema = z.enum(["culture", "marketplace", "resource"]);
 
@@ -39,16 +42,6 @@ function getString(formData: FormData, key: string) {
   return typeof value === "string" ? value : "";
 }
 
-async function getSignedInMemberId() {
-  const session = await getCurrentMemberSession();
-
-  if (!session.user?.email || !session.member?.id) {
-    return null;
-  }
-
-  return session.member.id;
-}
-
 export async function createMemberBoardPostAction(formData: FormData) {
   const parsed = memberBoardPostSchema.safeParse({
     kind: formData.get("kind"),
@@ -64,9 +57,16 @@ export async function createMemberBoardPostAction(formData: FormData) {
     redirect("/culture/new?result=invalid");
   }
 
-  const authorId = await getSignedInMemberId();
+  let signedInMember;
 
-  if (!authorId) {
+  try {
+    signedInMember = await getSignedInMemberOrThrow();
+    assertMemberCanAuthor(
+      signedInMember.member,
+      parsed.data.kind,
+      parsed.data.subtype,
+    );
+  } catch {
     redirect("/account?auth=signin-required");
   }
 
@@ -74,7 +74,7 @@ export async function createMemberBoardPostAction(formData: FormData) {
 
   try {
     const result = await persistMemberBoardPost({
-      authorId,
+      authorId: signedInMember.member.id,
       ...parsed.data,
     });
 
@@ -104,9 +104,16 @@ export async function updateMemberBoardPostAction(formData: FormData) {
     redirect("/culture?result=invalid");
   }
 
-  const authorId = await getSignedInMemberId();
+  let signedInMember;
 
-  if (!authorId) {
+  try {
+    signedInMember = await getSignedInMemberOrThrow();
+    assertMemberCanAuthor(
+      signedInMember.member,
+      parsed.data.kind,
+      parsed.data.subtype,
+    );
+  } catch {
     redirect("/account?auth=signin-required");
   }
 
@@ -115,7 +122,7 @@ export async function updateMemberBoardPostAction(formData: FormData) {
   try {
     await updateMemberBoardPost({
       id: parsed.data.id,
-      authorId,
+      authorId: signedInMember.member.id,
       kind: parsed.data.kind,
       subtype: parsed.data.subtype,
       title: parsed.data.title,
@@ -135,20 +142,22 @@ export async function updateMemberBoardPostAction(formData: FormData) {
 
 export async function hideMemberBoardPostAction(formData: FormData) {
   const id = getString(formData, "id");
-  const authorId = await getSignedInMemberId();
+  let signedInMember;
 
   if (!id) {
     redirect("/culture?result=invalid");
   }
 
-  if (!authorId) {
+  try {
+    signedInMember = await getSignedInMemberOrThrow();
+  } catch {
     redirect("/account?auth=signin-required");
   }
 
   let nextPath = `/culture/${id}/edit?result=error`;
 
   try {
-    await hideMemberBoardPost(id, authorId);
+    await hideMemberBoardPost(id, signedInMember.member.id);
     nextPath = "/account?auth=post-hidden";
   } catch {
     nextPath = `/culture/${id}/edit?result=error`;
@@ -169,9 +178,11 @@ export async function createMemberCommentAction(formData: FormData) {
     redirect(getString(formData, "returnTo") || "/culture");
   }
 
-  const authorId = await getSignedInMemberId();
+  let signedInMember;
 
-  if (!authorId) {
+  try {
+    signedInMember = await getSignedInMemberOrThrow();
+  } catch {
     redirect("/account?auth=signin-required");
   }
 
@@ -179,7 +190,7 @@ export async function createMemberCommentAction(formData: FormData) {
     await persistMemberComment({
       targetType: parsed.data.targetType,
       targetId: parsed.data.targetId,
-      authorId,
+      authorId: signedInMember.member.id,
       body: parsed.data.body,
     });
   } catch {
@@ -195,6 +206,12 @@ export async function reportMemberCommentAction(formData: FormData) {
 
   if (!commentId) {
     redirect(returnTo);
+  }
+
+  try {
+    await getSignedInMemberOrThrow();
+  } catch {
+    redirect("/account?auth=signin-required");
   }
 
   try {

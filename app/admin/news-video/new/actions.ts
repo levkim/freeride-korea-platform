@@ -1,10 +1,17 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requireAdminAction } from "@/lib/authz/server";
 import { persistNewsVideoDraft } from "@/lib/repositories/news-video";
 import { parseNewsVideoFormData } from "@/lib/validation/news-video-form";
 
 export async function submitNewsVideoDraft(formData: FormData) {
+  try {
+    await requireAdminAction();
+  } catch {
+    redirect("/admin/login?error=forbidden&next=/admin/news-video/new");
+  }
+
   const parsed = parseNewsVideoFormData(formData);
 
   if (!parsed.success) {

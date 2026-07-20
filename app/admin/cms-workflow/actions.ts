@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { requireExecutiveOrAdminAction } from "@/lib/authz/server";
 import { updateWorkflowPolicy } from "@/lib/repositories/workflow-policies";
 import type { ContentKind, PublishStatus } from "@/lib/types/content";
 import type { MemberType } from "@/lib/types/member";
@@ -46,6 +47,12 @@ function getFormValue(formData: FormData, key: string) {
 }
 
 export async function updateContentWorkflowPolicyAction(formData: FormData) {
+  try {
+    await requireExecutiveOrAdminAction();
+  } catch {
+    redirect("/admin/login?error=forbidden&next=/admin/cms-workflow");
+  }
+
   const kind = getFormValue(formData, "kind") as ContentKind;
   const authorMinimumRole = getFormValue(
     formData,

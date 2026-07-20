@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { requireAdminAction } from "@/lib/authz/server";
 import { persistReviewAction } from "@/lib/repositories/review-actions";
 import {
   reviewActionInputSchema,
@@ -8,13 +9,19 @@ import {
 } from "@/lib/validation/review-action";
 
 export async function submitReviewAction(formData: FormData) {
+  const reviewId = String(formData.get("reviewId") ?? "");
+
+  try {
+    await requireAdminAction();
+  } catch {
+    redirect(`/admin/login?error=forbidden&next=/admin/review-queue/${reviewId}`);
+  }
+
   const parsed = reviewActionInputSchema.safeParse({
     reviewId: formData.get("reviewId"),
     action: formData.get("action"),
     note: formData.get("note"),
   });
-
-  const reviewId = String(formData.get("reviewId") ?? "");
 
   if (!parsed.success) {
     redirect(`/admin/review-queue/${reviewId}?result=invalid`);
