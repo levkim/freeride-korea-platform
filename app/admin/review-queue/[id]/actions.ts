@@ -25,8 +25,19 @@ export async function submitReviewAction(formData: FormData) {
     ...parsed.data,
     nextStatus,
   });
+  const resultParams = new URLSearchParams({
+    result: parsed.data.action,
+    next: nextStatus,
+    mode: result.mode,
+  });
 
-  redirect(
-    `/admin/review-queue/${parsed.data.reviewId}?result=${parsed.data.action}&next=${nextStatus}&mode=${result.mode}`,
-  );
+  if (result.memberUpgradeApplied) {
+    resultParams.set("memberUpgrade", "updated");
+  }
+
+  if (result.unsupportedRequestedMemberType) {
+    resultParams.set("memberUpgrade", "unsupported");
+  }
+
+  redirect(`/admin/review-queue/${parsed.data.reviewId}?${resultParams}`);
 }

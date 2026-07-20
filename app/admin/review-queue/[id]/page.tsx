@@ -21,6 +21,7 @@ type ReviewDetailPageProps = {
     result?: string;
     next?: string;
     mode?: string;
+    memberUpgrade?: string;
   }>;
 };
 
@@ -128,6 +129,7 @@ export default async function ReviewQueueDetailPage({
   const resolvedSearchParams = await searchParams;
   const result = resolvedSearchParams?.result;
   const persistenceMode = resolvedSearchParams?.mode;
+  const memberUpgradeResult = resolvedSearchParams?.memberUpgrade;
   const item = await getReviewQueueItemById(id);
 
   if (!item) {
@@ -331,6 +333,18 @@ export default async function ReviewQueueDetailPage({
                 <span className="mt-2 block">
                   현재 Supabase 환경변수가 없어 DB 저장 없이 검증 모드로
                   처리되었습니다.
+                </span>
+              ) : null}
+              {memberUpgradeResult === "updated" ? (
+                <span className="mt-2 block">
+                  회원 등급 전환 신청이 승인되어 회원 등급과 문의 상태까지 함께
+                  저장되었습니다.
+                </span>
+              ) : null}
+              {memberUpgradeResult === "unsupported" ? (
+                <span className="mt-2 block text-amber-800">
+                  요청 등급을 자동 매핑하지 못했습니다. 회원 관리 화면에서
+                  등급을 직접 확인해 주세요.
                 </span>
               ) : null}
             </div>
