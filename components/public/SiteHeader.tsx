@@ -36,11 +36,11 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-4 py-3 md:px-5">
         <Link href="/" className="flex min-w-0 items-center gap-3">
           <img
-            src="/brand/logo-mark.svg"
+            src="/brand/logo-header.png"
             alt="FREERIDE KOREA"
-            width="56"
-            height="56"
-            className="h-14 w-14 shrink-0 object-contain"
+            width="72"
+            height="72"
+            className="h-[72px] w-[72px] shrink-0 object-contain"
           />
           <span className="hidden shrink-0 sm:block">
             <span className="block text-2xl font-black leading-[1.0] tracking-normal">
