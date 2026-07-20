@@ -40,9 +40,12 @@ const hostingSettings = [
   ["Node.js version", "20"],
   ["Install command", "npm ci"],
   ["Build command", "npm run build"],
-  ["Start command", "npm run start"],
+  ["Runtime", "Sites production deployment"],
   ["Health check path", "/healthz"],
-  ["Post-deploy smoke QA", "QA_BASE_URL=https://www.freeride.kr npm run qa:smoke"],
+  [
+    "Post-deploy smoke QA",
+    "cmd /c \"set QA_BASE_URL=https://www.freeride.kr&& npm.cmd run qa:smoke\"",
+  ],
 ];
 
 type ChecklistItem = {
@@ -182,15 +185,56 @@ function getDeploymentChecklist(): ChecklistItem[] {
 }
 
 const qaCommands = [
-  "npm run qa:preflight",
-  "npm run qa:release",
-  "npm run build",
-  "npm run qa:deploy-env",
-  "npm run qa:smoke",
-  "curl http://localhost:3000/health",
-  "curl http://localhost:3000/healthz",
-  "QA_BASE_URL=https://www.freeride.kr npm run qa:smoke",
-  "QA_BASE_URL=https://www.freeride.kr npm run qa:release",
+  [
+    "전체 배포 전 점검",
+    "npm.cmd run qa:preflight",
+    "빌드, 타입, 링크, SEO, 런타임, 이미지, 스모크 체크를 한 번에 실행합니다.",
+  ],
+  [
+    "운영 환경변수 점검",
+    "npm.cmd run qa:deploy-env",
+    "운영 도메인, 관리자 접근 키, Supabase URL, service role key 설정 여부를 확인합니다.",
+  ],
+  [
+    "회원가입 저장 흐름",
+    "npm.cmd run qa:membership",
+    "회원가입 문의, 일반회원 생성, 회원 전환 검토 큐 생성 경로를 확인합니다.",
+  ],
+  [
+    "회원 등급 수동 변경",
+    "npm.cmd run qa:member-update",
+    "관리자 회원 목록에서 등급과 상태를 저장할 수 있는 DB 경로를 확인합니다.",
+  ],
+  [
+    "회원 전환 승인",
+    "npm.cmd run qa:member-upgrade-approval",
+    "검토 승인 후 회원 등급, 문의 상태, 검토 이력이 함께 반영되는지 확인합니다.",
+  ],
+  [
+    "댓글 관리",
+    "npm.cmd run qa:comment-moderation",
+    "댓글 숨김 처리와 comment_events 기록이 Supabase에 저장되는지 확인합니다.",
+  ],
+  [
+    "Supabase 테이블 점검",
+    "npm.cmd run db:check",
+    "주요 테이블과 Storage 연결 상태를 CLI에서 확인합니다.",
+  ],
+  [
+    "Storage 버킷 확인",
+    "npm.cmd run db:storage:ensure",
+    "content-images 버킷 존재 여부를 확인하고 필요 시 생성 경계를 점검합니다.",
+  ],
+  [
+    "운영 스모크 QA",
+    "cmd /c \"set QA_BASE_URL=https://www.freeride.kr&& npm.cmd run qa:smoke\"",
+    "배포 후 운영 도메인의 핵심 공개/관리자 경로 응답을 확인합니다.",
+  ],
+  [
+    "운영 이미지 QA",
+    "cmd /c \"set QA_BASE_URL=https://www.freeride.kr&& npm.cmd run qa:assets\"",
+    "운영 도메인에서 로고와 핵심 브랜드 이미지가 깨지지 않는지 확인합니다.",
+  ],
 ];
 
 export const metadata = {
@@ -404,15 +448,28 @@ export default function AdminDeploymentPage() {
         <p className="text-sm font-black uppercase text-[var(--color-fk-blue)]">
           Release Commands
         </p>
-        <h2 className="mt-3 text-2xl font-black">배포 직전 실행 명령</h2>
+        <h2 className="mt-3 text-2xl font-black">운영 QA 명령</h2>
+        <p className="mt-2 max-w-3xl text-sm font-bold leading-6 text-zinc-600">
+          Windows PowerShell에서는 `npm` 대신 `npm.cmd`를 사용합니다. 운영 도메인
+          기준 QA는 `cmd /c &quot;set QA_BASE_URL=...&& npm.cmd run ...&quot;` 형식으로
+          실행하면 환경변수 해석 문제가 적습니다.
+        </p>
         <div className="mt-5 grid gap-3">
-          {qaCommands.map((command) => (
-            <code
+          {qaCommands.map(([title, command, description]) => (
+            <article
               key={command}
-              className="block border border-zinc-200 bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
+              className="grid gap-3 border border-zinc-200 bg-zinc-50 p-4 lg:grid-cols-[220px_1fr]"
             >
-              {command}
-            </code>
+              <div>
+                <p className="font-black text-zinc-950">{title}</p>
+                <p className="mt-2 text-sm font-bold leading-6 text-zinc-600">
+                  {description}
+                </p>
+              </div>
+              <code className="block break-all border border-zinc-200 bg-zinc-950 px-4 py-3 text-sm font-bold text-white">
+                {command}
+              </code>
+            </article>
           ))}
         </div>
       </section>
