@@ -7,6 +7,7 @@ import {
   getMissingSupabaseAdminEnv,
   hasSupabaseAdminEnv,
 } from "@/lib/supabase/admin";
+import { getWorkflowPolicyForKind } from "@/lib/repositories/workflow-policies";
 
 type PersistEventDraftResult = {
   mode: "supabase" | "mock";
@@ -219,11 +220,12 @@ export async function persistEventDraft(
   }
 
   const supabase = createSupabaseAdminClient();
+  const workflowPolicy = await getWorkflowPolicyForKind("event");
   const { data: content, error: contentError } = await supabase
     .from("content_entries")
     .insert({
       kind: "event",
-      status: "review",
+      status: workflowPolicy?.defaultStatus ?? "review",
       title_ko: input.name.ko,
       title_en: input.name.en,
       summary_ko: input.summary.ko,
@@ -280,6 +282,13 @@ export async function persistEventDraft(
     }
   }
 
+  if (workflowPolicy && !workflowPolicy.requiresReview) {
+    return {
+      mode: "supabase",
+      contentId: content.id as string,
+    };
+  }
+
   const { data: reviewItem, error: reviewError } = await supabase
     .from("review_queue_items")
     .insert({
@@ -288,8 +297,8 @@ export async function persistEventDraft(
       title: input.name.ko,
       status: "review",
       risk: input.cancelled ? "high" : "medium",
-      required_author_role: "executive",
-      required_publish_role: "admin",
+      required_author_role: workflowPolicy?.authorMinimumRole ?? "executive",
+      required_publish_role: workflowPolicy?.publisherRole ?? "admin",
       source_url: input.officialLink || null,
     })
     .select("id")

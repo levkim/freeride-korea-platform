@@ -1,12 +1,10 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Badge } from "@/components/ui/Badge";
 import { listMembers } from "@/lib/repositories/members";
+import { listWorkflowPolicies } from "@/lib/repositories/workflow-policies";
 import type { ContentKind } from "@/lib/types/content";
 import type { Member, MemberStatus, MemberType } from "@/lib/types/member";
-import {
-  canAuthorContent,
-  contentWorkflowPolicies,
-} from "@/lib/workflow/content-policy";
+import type { ContentWorkflowPolicy } from "@/lib/types/workflow";
 import { submitMemberUpdate } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -59,8 +57,30 @@ const memberStatusLabels = {
 
 const memberStatusOrder: MemberStatus[] = ["active", "reviewing", "suspended"];
 
+const memberRank: Record<MemberType, number> = {
+  general: 0,
+  supporting: 0,
+  regular: 1,
+  athlete: 1,
+  executive: 2,
+};
+
 function getMemberCount(members: Member[], memberType: MemberType) {
   return members.filter((member) => member.memberType === memberType).length;
+}
+
+function canAuthorByPolicy(
+  memberType: MemberType,
+  kind: ContentKind,
+  policies: ContentWorkflowPolicy[],
+) {
+  const policy = policies.find((item) => item.kind === kind);
+
+  if (!policy) {
+    return false;
+  }
+
+  return memberRank[memberType] >= memberRank[policy.authorMinimumRole];
 }
 
 function MemberDescription({ memberType }: { memberType: MemberType }) {
@@ -137,6 +157,7 @@ export default async function AdminMembersPage({
   searchParams,
 }: AdminMembersPageProps) {
   const { items: members, mode } = await listMembers();
+  const contentWorkflowPolicies = await listWorkflowPolicies();
   const resolvedSearchParams = await searchParams;
   const result = resolvedSearchParams?.result;
   const actionMode = resolvedSearchParams?.mode;
@@ -320,12 +341,14 @@ export default async function AdminMembersPage({
                     <td key={kind} className="px-4 py-4">
                       <span
                         className={`inline-flex h-7 min-w-12 items-center justify-center border px-2 text-xs font-black uppercase ${
-                          canAuthorContent(memberType, kind)
+                          canAuthorByPolicy(memberType, kind, contentWorkflowPolicies)
                             ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                             : "border-zinc-200 bg-zinc-50 text-zinc-400"
                         }`}
                       >
-                        {canAuthorContent(memberType, kind) ? "가능" : "불가"}
+                        {canAuthorByPolicy(memberType, kind, contentWorkflowPolicies)
+                          ? "가능"
+                          : "불가"}
                       </span>
                     </td>
                   ))}

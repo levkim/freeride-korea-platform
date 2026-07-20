@@ -11,6 +11,7 @@ import {
   getMissingSupabaseAdminEnv,
   hasSupabaseAdminEnv,
 } from "@/lib/supabase/admin";
+import { getWorkflowPolicyForKind } from "@/lib/repositories/workflow-policies";
 
 type PersistCategoryDraftResult = {
   mode: "supabase" | "mock";
@@ -244,7 +245,8 @@ export async function updateCategoryDraft(
   }
 
   const supabase = createSupabaseAdminClient();
-  const status = getInitialCategoryStatus(input.kind);
+  const workflowPolicy = await getEffectiveCategoryWorkflowPolicy(input);
+  const status = workflowPolicy.defaultStatus;
   const { error: contentError } = await supabase
     .from("content_entries")
     .update({
@@ -267,7 +269,7 @@ export async function updateCategoryDraft(
     throw new Error(contentError.message);
   }
 
-  if (!shouldCreateReviewQueueItem(input.kind)) {
+  if (!workflowPolicy.requiresReview) {
     return {
       mode: "supabase",
       contentId: id,
@@ -283,8 +285,8 @@ export async function updateCategoryDraft(
       title: `${input.title.ko} 수정`,
       status: "review",
       risk: input.kind === "marketplace" ? "high" : "medium",
-      required_author_role: getCategoryRequiredAuthorRole(input),
-      required_publish_role: "admin",
+      required_author_role: workflowPolicy.authorMinimumRole,
+      required_publish_role: workflowPolicy.publisherRole,
     })
     .select("id")
     .single();
@@ -335,18 +337,6 @@ export async function updateCategoryContentStatus(
     mode: "supabase",
     contentId: id,
   };
-}
-
-function getCategoryRequiredAuthorRole(input: CategoryContentInput) {
-  if (input.kind === "culture" || input.kind === "marketplace") {
-    return "general";
-  }
-
-  if (input.kind === "program" && educationSubtypes.has(input.subtype)) {
-    return "executive";
-  }
-
-  return "regular";
 }
 
 export async function listCategoryContent(
@@ -465,7 +455,8 @@ export async function persistCategoryDraft(
   }
 
   const supabase = createSupabaseAdminClient();
-  const status = getInitialCategoryStatus(input.kind);
+  const workflowPolicy = await getEffectiveCategoryWorkflowPolicy(input);
+  const status = workflowPolicy.defaultStatus;
   const { data: content, error: contentError } = await supabase
     .from("content_entries")
     .insert({
@@ -489,7 +480,7 @@ export async function persistCategoryDraft(
     throw new Error(contentError.message);
   }
 
-  if (!shouldCreateReviewQueueItem(input.kind)) {
+  if (!workflowPolicy.requiresReview) {
     return {
       mode: "supabase",
       contentId: content.id as string,
@@ -505,8 +496,8 @@ export async function persistCategoryDraft(
       title: input.title.ko,
       status: "review",
       risk: input.kind === "marketplace" ? "high" : "medium",
-      required_author_role: getCategoryRequiredAuthorRole(input),
-      required_publish_role: "admin",
+      required_author_role: workflowPolicy.authorMinimumRole,
+      required_publish_role: workflowPolicy.publisherRole,
     })
     .select("id")
     .single();
@@ -520,4 +511,38 @@ export async function persistCategoryDraft(
     contentId: content.id as string,
     reviewItemId: reviewItem.id as string,
   };
+}
+
+async function getEffectiveCategoryWorkflowPolicy(input: CategoryContentInput) {
+  const policy = await getWorkflowPolicyForKind(input.kind);
+  const fallback = {
+    authorMinimumRole: getFallbackCategoryRequiredAuthorRole(input),
+    publisherRole: "admin" as const,
+    defaultStatus: getInitialCategoryStatus(input.kind),
+    requiresReview: shouldCreateReviewQueueItem(input.kind),
+  };
+
+  if (!policy) {
+    return fallback;
+  }
+
+  return {
+    ...policy,
+    authorMinimumRole:
+      input.kind === "program" && educationSubtypes.has(input.subtype)
+        ? "executive"
+        : policy.authorMinimumRole,
+  };
+}
+
+function getFallbackCategoryRequiredAuthorRole(input: CategoryContentInput) {
+  if (input.kind === "culture" || input.kind === "marketplace") {
+    return "general";
+  }
+
+  if (input.kind === "program" && educationSubtypes.has(input.subtype)) {
+    return "executive";
+  }
+
+  return "regular";
 }

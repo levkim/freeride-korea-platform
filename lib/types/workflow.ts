@@ -5,7 +5,9 @@ export type AdminRole = "admin";
 
 export type AuthorRole = MemberType | AdminRole;
 
-export type PublicationActorRole = AdminRole;
+export type PublicationActorRole = "executive" | AdminRole;
+
+export type PolicyEditorRole = "executive" | AdminRole;
 
 export type WorkflowTransition = {
   from: PublishStatus;
@@ -19,6 +21,7 @@ export type ContentWorkflowPolicy = {
   label: string;
   authorMinimumRole: MemberType;
   publisherRole: PublicationActorRole;
+  policyEditorRole: PolicyEditorRole;
   defaultStatus: PublishStatus;
   requiresReview: boolean;
   notes: string;

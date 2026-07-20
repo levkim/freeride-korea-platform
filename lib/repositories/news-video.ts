@@ -6,6 +6,7 @@ import {
   getMissingSupabaseAdminEnv,
   hasSupabaseAdminEnv,
 } from "@/lib/supabase/admin";
+import { getWorkflowPolicyForKind } from "@/lib/repositories/workflow-policies";
 
 type PersistNewsVideoDraftResult = {
   mode: "supabase" | "mock";
@@ -146,11 +147,12 @@ export async function persistNewsVideoDraft(
   }
 
   const supabase = createSupabaseAdminClient();
+  const workflowPolicy = await getWorkflowPolicyForKind(input.kind);
   const { data: content, error: contentError } = await supabase
     .from("content_entries")
     .insert({
       kind: input.kind,
-      status: "review",
+      status: workflowPolicy?.defaultStatus ?? "review",
       title_ko: input.title.ko,
       title_en: input.title.en,
       summary_ko: input.summary.ko,
@@ -172,6 +174,13 @@ export async function persistNewsVideoDraft(
     throw new Error(contentError.message);
   }
 
+  if (workflowPolicy && !workflowPolicy.requiresReview) {
+    return {
+      mode: "supabase",
+      contentId: content.id as string,
+    };
+  }
+
   const { data: reviewItem, error: reviewError } = await supabase
     .from("review_queue_items")
     .insert({
@@ -180,8 +189,8 @@ export async function persistNewsVideoDraft(
       title: input.title.ko,
       status: "review",
       risk: input.kind === "video" ? "medium" : "low",
-      required_author_role: "executive",
-      required_publish_role: "admin",
+      required_author_role: workflowPolicy?.authorMinimumRole ?? "executive",
+      required_publish_role: workflowPolicy?.publisherRole ?? "admin",
     })
     .select("id")
     .single();
